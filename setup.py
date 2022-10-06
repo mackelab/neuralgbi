@@ -1,7 +1,8 @@
 from setuptools import find_packages, setup
 
 REQUIRED = [
-    "sbi",
+    "invoke",
+    "svgutils==0.3.1",
 ]
 
 setup(

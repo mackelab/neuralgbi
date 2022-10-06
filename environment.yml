@@ -40,8 +40,10 @@ dependencies:
     - grpcio==1.49.1
     - idna==3.4
     - importlib-metadata==5.0.0
+    - invoke==1.7.3
     - joblib==1.2.0
     - kiwisolver==1.4.4
+    - lxml==4.9.1
     - markdown==3.4.1
     - markupsafe==2.1.1
     - matplotlib==3.6.0
@@ -68,6 +70,7 @@ dependencies:
     - scikit-learn==1.1.2
     - scipy==1.9.1
     - six==1.16.0
+    - svgutils==0.3.1
     - tensorboard==2.10.1
     - tensorboard-data-server==0.6.1
     - tensorboard-plugin-wit==1.8.1
