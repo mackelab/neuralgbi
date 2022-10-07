@@ -6,11 +6,15 @@ open_cmd = "open"
 
 fig_names = {
     "1": "paper/fig1",
+    "2": "paper/fig2",
+    "3": "paper/fig3",
+    "4": "paper/fig4",
+    "5": "paper/fig5",
 }
 
 
 @task
-def syncOverleaf(c, fig):
+def convert(c, fig):
     _convertsvg2pdf(c, fig)
     _convertpdf2png(c, fig)
 
