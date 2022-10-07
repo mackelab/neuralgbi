@@ -3,6 +3,7 @@ from pathlib import Path
 
 basepath = "."
 open_cmd = "open"
+overleaf = "/home/michael/Dropbox\ \(MLS\)/Apps/Overleaf/gbi"
 
 fig_names = {
     "1": "paper/fig1",
@@ -11,6 +12,20 @@ fig_names = {
     "4": "paper/fig4",
     "5": "paper/fig5",
 }
+
+
+@task
+def syncOverleaf(c, fig):
+    c.run(
+        "cp ./{fn}/fig/*.pdf {ol}/figures/ ".format(
+            bp=basepath, fn=fig_names[fig], ol=overleaf
+        )
+    )
+    c.run(
+        "cp ./{fn}/fig/*.png {ol}/figures/ ".format(
+            bp=basepath, fn=fig_names[fig], ol=overleaf
+        )
+    )
 
 
 @task
