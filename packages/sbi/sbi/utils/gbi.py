@@ -8,6 +8,7 @@ from sbi.utils.torchutils import atleast_2d
 
 
 def mse_dist(xs: Tensor, x_o: Tensor) -> Tensor:
+    # Shape of xs should be [num_thetas, num_xs, num_x_dims]
     mse = ((xs - x_o) ** 2).mean(dim=2)  # Average data dimension.
     return mse.mean(dim=1)  # Monte-Carlo average
 
