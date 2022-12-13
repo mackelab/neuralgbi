@@ -304,7 +304,7 @@ def rejection_sample_posterior_within_prior(
                 )
             else:
                 logging.warning(
-                    f"""Only {acceptance_rate:.0%} posterior samples are within the
+                    f"""Only {acceptance_rate:.6%} posterior samples are within the
                         prior support. It may take a long time to collect the
                         remaining {num_remaining} samples. Consider interrupting
                         (Ctrl-C) and switching to `sample_with='mcmc'`."""
