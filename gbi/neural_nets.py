@@ -1,7 +1,10 @@
 ### Module for neural network model and training loop
 
 
-### NET
+### Networks
+
+# Simple feedforward network, no embedding
+
 
 
 
