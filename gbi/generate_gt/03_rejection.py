@@ -44,10 +44,7 @@ with open("../../results/ground_truths/linear_gaussian/trained_nn.pkl", "rb") as
 proposal = ProposalClass(trained_nn)
 potential_fn = PotentialFN(task.prior, x_o=x_o, device="cpu", task=task)
 
-posterior = RejectionPosterior(
-    potential_fn=potential_fn,
-    proposal=proposal,
-)
+posterior = RejectionPosterior(potential_fn=potential_fn, proposal=proposal)
 samples = posterior.sample((10_000,))
 
 with open(

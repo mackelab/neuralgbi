@@ -7,6 +7,7 @@ def mse_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     mse = ((xs - x_o) ** 2).mean(dim=2)  # Average over data dimensions.
     return mse.mean(dim=1)  # Monte-Carlo average
 
+
 ## MAE
 def mae_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     # Shape of xs should be [num_thetas, num_xs, num_x_dims].
@@ -16,7 +17,7 @@ def mae_dist(xs: Tensor, x_o: Tensor) -> Tensor:
 
 ## MMD
 def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
-    return 
+    return
 
 
 ## OTHER STUFF
