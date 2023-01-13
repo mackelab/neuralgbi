@@ -172,6 +172,7 @@ def rejection_sample(
                 leakage_warning_raised = True  # Ensure warning is raised just once.
 
         pbar.close()
+        print("acceptance rate", acceptance_rate)
 
         # When in case of leakage a batch size was used there could be too many samples.
         samples = torch.cat(accepted)[:num_samples]

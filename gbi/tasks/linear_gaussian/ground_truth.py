@@ -3,6 +3,7 @@ from typing import Tuple
 import torch
 from torch import tensor, as_tensor, float32, ones, zeros, eye, randn, mm, Tensor
 from torch.distributions import MultivariateNormal
+from sbi.utils import mcmc_transform
 
 beta = 1.0
 
@@ -30,13 +31,17 @@ class Task:
 
     def distance_fn(self, theta):
         """Computes E_{x|t}[(x - x_o)^2]."""
+        if theta.ndim == 1:
+            theta = theta.unsqueeze(0)
         predicted_mean = self.likelihood_shift + theta
         expected_value_of_d = (
             self.likelihood_cov.diagonal()
             + predicted_mean**2
             - 2 * self.x_o * predicted_mean
             + self.x_o**2
-        )
+        ).sum(
+            dim=1
+        )  # Sum over dimensions of the Gaussian
         return expected_value_of_d
 
     def potential(self, theta):
