@@ -9,14 +9,14 @@ beta = 1.0
 
 
 class Task:
-    def __init__(self, dim: int, x_o, seed: int = 0):
-        _ = torch.manual_seed(0)
+    def __init__(self, x_o=None, dim: int = 10, seed: int = 0):
+        _ = torch.manual_seed(seed)
         self.prior_mean = zeros((dim,))
         self.prior_cov = eye(dim)
         self.prior = MultivariateNormal(self.prior_mean, self.prior_cov)
 
         self.likelihood_shift = randn((dim,))
-        self.likelihood_cov = randn((dim,)) * eye(dim)
+        self.likelihood_cov = torch.abs(randn((dim,))) * eye(dim)
 
         self.x_o = x_o
 
@@ -36,9 +36,9 @@ class Task:
         predicted_mean = self.likelihood_shift + theta
         expected_value_of_d = (
             self.likelihood_cov.diagonal()
-            + predicted_mean ** 2
+            + predicted_mean**2
             - 2 * self.x_o * predicted_mean
-            + self.x_o ** 2
+            + self.x_o**2
         ).sum(
             dim=1
         )  # Sum over dimensions of the Gaussian
