@@ -1,0 +1,19 @@
+defaults:
+  - _self_
+
+seed: 0
+
+task:
+  xo_index: 0
+  name: "linear_gaussian"
+
+flow:
+  training_batch_size: 500
+
+
+hydra:
+  run:
+    dir: ../results/benchmark/ground_truths/${task.name}/observation_${task.xo_index}/${now:%Y_%m_%d}__${now:%H_%M_%S}/0
+  sweep:
+    dir: ../../results/benchmark/ground_truths/${task.name}/observation_${task.xo_index}${now:%Y_%m_%d}__${now:%H_%M_%S}_m
+    subdir: ${hydra.job.num}

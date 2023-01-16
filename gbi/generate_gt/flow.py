@@ -13,17 +13,17 @@ from torch import Tensor, nn, relu, tensor, uint8, optim
 from torch.nn.utils.clip_grad import clip_grad_norm_
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from sbi.utils.sbiutils import standardizing_transform, z_score_parser
+from sbi.utils.sbiutils import (
+    standardizing_transform,
+    z_score_parser,
+)
 from sbi.utils.torchutils import create_alternating_binary_mask
 
 
-def run():
-    with open(
-        "../../results/ground_truths/linear_gaussian/mcmc_samples.pkl", "rb"
-    ) as handle:
+def train_flow(training_batch_size: int = 500):
+    with open("mcmc_samples.pkl", "rb") as handle:
         samples = pickle.load(handle)
 
-    print("samples", samples.shape)
     net = build_nsf(
         samples,
         z_score_x="independent",
@@ -31,10 +31,8 @@ def run():
         num_transforms=5,
         num_bins=10,
     )
-    trained_nn = train(net, samples)
-    with open(
-        "../../results/ground_truths/linear_gaussian/trained_nn.pkl", "wb"
-    ) as handle:
+    trained_nn = train(net, samples, training_batch_size=training_batch_size)
+    with open("trained_nn.pkl", "wb") as handle:
         pickle.dump(trained_nn, handle)
 
 
@@ -94,7 +92,7 @@ def train(
     learning_rate: float = 5e-4,
     validation_fraction: float = 0.1,
     stop_after_epochs: int = 20,
-    max_num_epochs: int = 2 ** 31 - 1,
+    max_num_epochs: int = 2**31 - 1,
     clip_max_norm: Optional[float] = 5.0,
 ):
     dataset = data.TensorDataset(theta)
@@ -281,7 +279,9 @@ def build_nsf(
         # Add LU transform only for high D x. Permutation makes sense only for more than
         # one feature.
         if x_numel > 1:
-            block.append(transforms.LULinear(x_numel, identity_init=True))
+            block.append(
+                transforms.LULinear(x_numel, identity_init=True),
+            )
         transform_list += block
 
     z_score_x_bool, structured_x = z_score_parser(z_score_x)
@@ -301,4 +301,4 @@ def build_nsf(
 
 
 if __name__ == "__main__":
-    run()
+    train_flow()

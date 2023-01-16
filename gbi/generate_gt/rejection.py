@@ -1,7 +1,7 @@
 import pickle
 from torch import zeros, Size
 
-from gbi.tasks.linear_gaussian.ground_truth import Task
+from gbi.tasks.linear_gaussian.task import Task
 from sbi.inference.potentials.base_potential import BasePotential
 from sbi.inference import RejectionPosterior
 
@@ -34,20 +34,19 @@ class ProposalClass:
         pass
 
 
-dim = 10
-x_o = zeros((dim,))
-task = Task(dim=dim, x_o=x_o, seed=0)
+def run_rejection(task):
 
-with open("../../results/ground_truths/linear_gaussian/trained_nn.pkl", "rb") as handle:
-    trained_nn = pickle.load(handle)
+    with open("trained_nn.pkl", "rb") as handle:
+        trained_nn = pickle.load(handle)
 
-proposal = ProposalClass(trained_nn)
-potential_fn = PotentialFN(task.prior, x_o=x_o, device="cpu", task=task)
+    proposal = ProposalClass(trained_nn)
+    potential_fn = PotentialFN(task.prior, x_o=task.x_o, device="cpu", task=task)
 
-posterior = RejectionPosterior(potential_fn=potential_fn, proposal=proposal)
-samples = posterior.sample((10_000,))
+    posterior = RejectionPosterior(
+        potential_fn=potential_fn,
+        proposal=proposal,
+    )
+    samples = posterior.sample((10_000,))
 
-with open(
-    "../../results/ground_truths/linear_gaussian/rejection_samples.pkl", "wb"
-) as handle:
-    pickle.dump(samples, handle)
+    with open("rejection_samples.pkl", "wb") as handle:
+        pickle.dump(samples, handle)
