@@ -37,14 +37,14 @@ def run(cfg: DictConfig) -> None:
         seed = int((time.time() % 1) * 1e7)
     else:
         seed = cfg.seed
-    np.savetxt("seed.txt", seed)
+    np.savetxt("seed.txt", np.asarray([seed]))
 
     # Run ground truth suite.
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
-    # run_mcmc(task)
-    # train_flow(**cfg.flow)
-    # run_rejection(task)
+    run_mcmc(task)
+    train_flow(**cfg.flow)
+    run_rejection(task)
 
 
 if __name__ == "__main__":
