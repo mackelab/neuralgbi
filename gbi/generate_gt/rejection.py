@@ -1,7 +1,6 @@
 import pickle
 from torch import zeros, Size
 
-from gbi.tasks.linear_gaussian.task import Task
 from sbi.inference.potentials.base_potential import BasePotential
 from sbi.inference import RejectionPosterior
 

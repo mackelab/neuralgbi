@@ -5,6 +5,7 @@ seed: 0
 
 task:
   xo_index: 0
+  beta: 1.0
   name: "linear_gaussian"
 
 flow:
@@ -13,7 +14,11 @@ flow:
 
 hydra:
   run:
-    dir: ../results/benchmark/ground_truths/${task.name}/observation_${task.xo_index}/${now:%Y_%m_%d}__${now:%H_%M_%S}/0
+    dir: ../../results/benchmark/ground_truths/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/beta_${task.beta}/obs_${task.xo_index}
   sweep:
-    dir: ../../results/benchmark/ground_truths/${task.name}/observation_${task.xo_index}${now:%Y_%m_%d}__${now:%H_%M_%S}_m
-    subdir: ${hydra.job.num}
+    dir: ../../results/benchmark/ground_truths/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/beta_${task.beta}/obs_${task.xo_index}
+    subdir: .
+  job:
+    chdir: True
+  launcher:
+    n_jobs: 30

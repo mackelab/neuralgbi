@@ -1,6 +1,5 @@
 from functools import partial
 from typing import Optional
-from warnings import warn
 import pickle
 from copy import deepcopy
 

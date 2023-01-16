@@ -2,6 +2,7 @@ import pickle
 import os
 import torch
 import numpy as np
+import time
 
 import hydra
 from omegaconf import DictConfig
@@ -9,7 +10,7 @@ from hydra.utils import get_original_cwd, to_absolute_path
 
 import logging
 
-from gbi.tasks.linear_gaussian.task import Task
+from gbi.tasks.linear_gaussian.task import LinearGaussian
 from gbi.generate_gt.mcmc import run_mcmc
 from gbi.generate_gt.flow import train_flow
 from gbi.generate_gt.rejection import run_rejection
@@ -17,7 +18,7 @@ from gbi.generate_gt.rejection import run_rejection
 log = logging.getLogger("run_benchmark_gt")
 
 
-@hydra.main(config_path="config", config_name="run")
+@hydra.main(version_base="1.1", config_path="config", config_name="run")
 def run(cfg: DictConfig) -> None:
 
     dir_path = get_original_cwd()
@@ -27,11 +28,20 @@ def run(cfg: DictConfig) -> None:
     x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
 
     # Define task.
-    task = Task(x_o=x_o)
+    if cfg.task.name == "linear_gaussian":
+        task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
+    else:
+        raise NameError
+
+    if cfg.seed is None:
+        seed = int((time.time() % 1) * 1e7)
+    else:
+        seed = cfg.seed
+    np.savetxt("seed.txt", seed)
 
     # Run ground truth suite.
-    _ = torch.manual_seed(cfg.seed)
-    _ = np.random.seed(seed=cfg.seed)
+    _ = torch.manual_seed(seed)
+    _ = np.random.seed(seed=seed)
     run_mcmc(task)
     train_flow(**cfg.flow)
     run_rejection(task)

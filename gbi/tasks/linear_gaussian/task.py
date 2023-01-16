@@ -1,15 +1,18 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 import torch
-from torch import tensor, as_tensor, float32, ones, zeros, eye, randn, mm, Tensor
+from torch import tensor, as_tensor, float32, ones, zeros, eye, randn, Tensor
 from torch.distributions import MultivariateNormal
-from sbi.utils import mcmc_transform
-
-beta = 1.0
 
 
-class Task:
-    def __init__(self, x_o=None, dim: int = 10, seed: int = 0):
+class LinearGaussian:
+    def __init__(
+        self,
+        x_o: Optional[Tensor] = None,
+        beta: float = 1.0,
+        dim: int = 10,
+        seed: int = 0,
+    ):
         _ = torch.manual_seed(seed)
         self.prior_mean = zeros((dim,))
         self.prior_cov = eye(dim)
@@ -19,6 +22,7 @@ class Task:
         self.likelihood_cov = torch.abs(randn((dim,))) * eye(dim)
 
         self.x_o = x_o
+        self.beta = beta
 
     def linear_gaussian(self, theta: Tensor) -> Tensor:
         """Simulator."""
@@ -31,6 +35,7 @@ class Task:
 
     def distance_fn(self, theta):
         """Computes E_{x|t}[(x - x_o)^2]."""
+        assert self.x_o is not None, "x_o not set."
         if theta.ndim == 1:
             theta = theta.unsqueeze(0)
         predicted_mean = self.likelihood_shift + theta
@@ -46,7 +51,7 @@ class Task:
 
     def potential(self, theta):
         """Potential for GBI ground truth posterior."""
-        term1 = -beta * self.distance_fn(theta)
+        term1 = -self.beta * self.distance_fn(theta)
         return term1 + self.prior.log_prob(theta)
 
     def true_posterior_linear_gaussian(self, x_o: Tensor) -> MultivariateNormal:
