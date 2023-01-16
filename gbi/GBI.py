@@ -26,6 +26,7 @@ class GBInference:
         if self.do_precompute_distances:
             self._precompute_distance()
             self._compute_index_pairs()
+        return self
 
     def initialize_distance_estimator(
         self, num_layers, num_hidden, net_type, net_kwargs={}

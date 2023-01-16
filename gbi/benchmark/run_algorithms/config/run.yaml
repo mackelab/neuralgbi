@@ -12,6 +12,7 @@ net:
   num_layers: 2
   num_hidden: 50
   net_type: ResNet
+  noise_level: 1.0
 
 
 hydra:

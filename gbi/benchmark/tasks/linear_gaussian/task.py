@@ -24,7 +24,7 @@ class LinearGaussian:
         self.x_o = x_o
         self.beta = beta
 
-    def linear_gaussian(self, theta: Tensor) -> Tensor:
+    def simulate(self, theta: Tensor) -> Tensor:
         """Simulator."""
         chol_factor = torch.linalg.cholesky(self.likelihood_cov)
         return (

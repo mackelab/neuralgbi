@@ -45,33 +45,36 @@ def run(cfg: DictConfig) -> None:
     _ = np.random.seed(seed=seed)
 
     # Generate simulations
-    theta = task.prior.sample((cfg.task.num_simulations,))
+    theta = task.prior.sample((cfg.task.num_simulations,))  # type: ignore
     x = task.simulate(theta)
+    x_target = x + torch.randn(x.shape) * torch.std(x, dim=0) * cfg.net.noise_level
 
     # Run algorithm.
-    inference = GBInference(prior=task.prior, distance_fn, do_precompute_distances=True)
+    inference = GBInference(
+        prior=task.prior, distance_func=None, do_precompute_distances=True
+    )
     inference.initialize_distance_estimator(
         num_layers=cfg.net.num_layers,
         num_hidden=cfg.net.num_hidden,
         net_type=cfg.net.net_type,
     )
-    _ = inference.append_simulations(theta, x).train(
+    _ = inference.append_simulations(theta, x, x_target=x_target).train(
         training_batch_size=cfg.net.training_batch_size
     )
-    potential_fn = inference.get_potential()
-    theta_transform = mcmc_transform(task.prior)
-    posterior = MCMCPosterior(potential_fn, theta_transform=theta_transform, proposal=task.prior, 
-        method="slice_np_vectorized",
-        thin=10,
-        warmup_steps=50,
-        num_chains=100,
-        init_strategy="resample",)
+    # potential_fn = inference.get_potential()
+    # theta_transform = mcmc_transform(task.prior)
+    # posterior = MCMCPosterior(potential_fn, theta_transform=theta_transform, proposal=task.prior,
+    #     method="slice_np_vectorized",
+    #     thin=10,
+    #     warmup_steps=50,
+    #     num_chains=100,
+    #     init_strategy="resample",)
 
-    samples = posterior.sample((10_000,))
+    # samples = posterior.sample((10_000,))
 
-    with open("", "rb") as handle:
-        gt_samples = pickle.load(handle)
-    c2st_val = c2st(samples, gt_samples)
+    # with open("", "rb") as handle:
+    #     gt_samples = pickle.load(handle)
+    # c2st_val = c2st(samples, gt_samples)
 
 
 if __name__ == "__main__":
