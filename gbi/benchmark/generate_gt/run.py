@@ -10,10 +10,10 @@ from hydra.utils import get_original_cwd, to_absolute_path
 
 import logging
 
-from gbi.tasks.linear_gaussian.task import LinearGaussian
-from gbi.generate_gt.mcmc import run_mcmc
-from gbi.generate_gt.flow import train_flow
-from gbi.generate_gt.rejection import run_rejection
+from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
+from gbi.benchmark.generate_gt.mcmc import run_mcmc
+from gbi.benchmark.generate_gt.flow import train_flow
+from gbi.benchmark.generate_gt.rejection import run_rejection
 
 log = logging.getLogger("run_benchmark_gt")
 
@@ -42,9 +42,9 @@ def run(cfg: DictConfig) -> None:
     # Run ground truth suite.
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
-    run_mcmc(task)
-    train_flow(**cfg.flow)
-    run_rejection(task)
+    # run_mcmc(task)
+    # train_flow(**cfg.flow)
+    # run_rejection(task)
 
 
 if __name__ == "__main__":
