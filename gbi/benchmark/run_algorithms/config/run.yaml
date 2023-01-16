@@ -1,0 +1,24 @@
+defaults:
+  - _self_
+
+seed: 0
+
+task:
+  num_simulations: 1000
+  name: "linear_gaussian"
+
+net:
+  training_batch_size: 500
+  num_layers: 2
+  num_hidden: 50
+  net_type: ResNet
+
+
+hydra:
+  run:
+    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/beta_${task.beta}/obs_${task.xo_index}
+  sweep:
+    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/beta_${task.beta}/obs_${task.xo_index}
+    subdir: .
+  job:
+    chdir: True

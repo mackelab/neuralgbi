@@ -1,0 +1,5 @@
+defaults:
+  - submitit_local
+
+cpus_per_task: 4
+mem_gb: 8
