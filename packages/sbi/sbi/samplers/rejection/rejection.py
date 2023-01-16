@@ -164,7 +164,7 @@ def rejection_sample(
                 and not leakage_warning_raised
             ):
                 logging.warning(
-                    f"""Only {acceptance_rate:.0%} proposal samples were accepted. It
+                    f"""Only {acceptance_rate:.6%} proposal samples were accepted. It
                         may take a long time to collect the remaining {num_remaining}
                         samples. Consider interrupting (Ctrl-C) and switching to
                         `sample_with='mcmc`."""
@@ -290,7 +290,7 @@ def rejection_sample_posterior_within_prior(
                 logging.warning(
                     f"""Drawing samples from posterior to estimate the normalizing
                         constant for `log_prob()`. However, only
-                        {acceptance_rate:.0%} posterior samples are within the
+                        {acceptance_rate:.6%} posterior samples are within the
                         prior support. It may take a long time to collect the
                         remaining {num_remaining} samples.
                         Consider interrupting (Ctrl-C) and either basing the
