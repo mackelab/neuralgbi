@@ -1,0 +1,8 @@
+defaults:
+  - override hydra/launcher: submitit_slurm
+
+timeout_min: 120
+mem_gb: 8
+cpus_per_task: 1
+partition: macke
+
