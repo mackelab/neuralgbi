@@ -62,7 +62,7 @@ def run(cfg: DictConfig) -> None:
     _ = inference.append_simulations(theta, x, x_target=x_target).train(
         training_batch_size=cfg.net.training_batch_size
     )
-    potential_fn = inference.get_potential(x_o=x_o, beta=1.0)
+    potential_fn = inference.get_potential(x_o=x_o, beta=cfg.task.beta)
     theta_transform = mcmc_transform(task.prior)
     posterior = MCMCPosterior(
         potential_fn,
@@ -76,7 +76,7 @@ def run(cfg: DictConfig) -> None:
     )
     samples = posterior.sample((10_000,))
 
-    setup = f"{cfg.task.name}/gt_samples/beta_{cfg.task.beta}/obs_{cfg.task.xo_index}"
+    setup = f"{cfg.task.name}/2023_01_16__16_38_48/beta_{cfg.task.beta}/obs_{cfg.task.xo_index}"
     with open(
         f"{dir_path}/../../results/benchmark/ground_truths/{setup}/rejection_samples.pkl",
         "rb",
