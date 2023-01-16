@@ -1,6 +1,7 @@
 import pickle
 import os
 import torch
+from torch import Tensor
 import numpy as np
 import time
 
@@ -61,20 +62,30 @@ def run(cfg: DictConfig) -> None:
     _ = inference.append_simulations(theta, x, x_target=x_target).train(
         training_batch_size=cfg.net.training_batch_size
     )
-    # potential_fn = inference.get_potential()
-    # theta_transform = mcmc_transform(task.prior)
-    # posterior = MCMCPosterior(potential_fn, theta_transform=theta_transform, proposal=task.prior,
-    #     method="slice_np_vectorized",
-    #     thin=10,
-    #     warmup_steps=50,
-    #     num_chains=100,
-    #     init_strategy="resample",)
+    potential_fn = inference.get_potential(x_o=x_o, beta=1.0)
+    theta_transform = mcmc_transform(task.prior)
+    posterior = MCMCPosterior(
+        potential_fn,
+        theta_transform=theta_transform,
+        proposal=task.prior,
+        method="slice_np_vectorized",
+        thin=10,
+        warmup_steps=50,
+        num_chains=100,
+        init_strategy="resample",
+    )
+    samples = posterior.sample((10_000,))
 
-    # samples = posterior.sample((10_000,))
+    setup = f"{cfg.task.name}/gt_samples/beta_{cfg.task.beta}/obs_{cfg.task.xo_index}"
+    with open(
+        f"{dir_path}/../../results/benchmark/ground_truths/{setup}/rejection_samples.pkl",
+        "rb",
+    ) as handle:
+        gt_samples = pickle.load(handle)
 
-    # with open("", "rb") as handle:
-    #     gt_samples = pickle.load(handle)
-    # c2st_val = c2st(samples, gt_samples)
+    assert isinstance(samples, Tensor)
+    c2st_val = c2st(samples, gt_samples)
+    log.info(f"c2st {c2st_val}")
 
 
 if __name__ == "__main__":
