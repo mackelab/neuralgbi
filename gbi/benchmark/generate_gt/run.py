@@ -12,6 +12,7 @@ import logging
 
 from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
 from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
+from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
 from gbi.benchmark.generate_gt.mcmc import run_mcmc
 from gbi.benchmark.generate_gt.flow import train_flow
 from gbi.benchmark.generate_gt.rejection import run_rejection
@@ -33,6 +34,9 @@ def run(cfg: DictConfig) -> None:
         task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
     elif cfg.task.name == "uniform_1d":
         task = UniformNoise1D(x_o=x_o, beta=cfg.task.beta)
+    elif cfg.task.name == "gaussian_mixture":
+        x_o = x_o[0]  # iid, so no more batch dim
+        task = GaussianMixture(x_o=x_o, beta=cfg.task.beta)
     else:
         raise NameError
 

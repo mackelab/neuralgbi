@@ -6,7 +6,7 @@ from sbi.inference import RejectionPosterior
 
 
 class PotentialFN(BasePotential):
-    allow_iid_x = False  # type: ignore
+    allow_iid_x = True  # type: ignore
 
     def __init__(self, prior, x_o, device, task):
         super().__init__(prior=prior, x_o=x_o, device=device)

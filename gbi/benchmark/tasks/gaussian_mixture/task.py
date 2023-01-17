@@ -10,14 +10,15 @@ from gbi.utils.mmd import ground_truth_mmd
 class GaussianMixture:
     def __init__(
         self,
-        limits: Tensor = tensor([[-14, 14], [-14, 14]]),
-        resolution: int = 250,
         x_o: Optional[Tensor] = None,
         num_trials: int = 5,
         beta: float = 1.0,
         dim: int = 2,
-        mmd_length_scale: float = 0.1,
+        limits: Tensor = tensor([[-14, 14], [-14, 14]]),
+        resolution: int = 250,
+        mmd_length_scale: float = 0.01,
     ):
+        """Suggested beta: [2.0, 10.0, 50.0]"""
         self.limits = limits
         self.resolution = resolution
         self.prior = BoxUniform(-10 * ones(dim), 10 * ones(dim))
