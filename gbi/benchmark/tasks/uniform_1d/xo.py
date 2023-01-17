@@ -38,3 +38,7 @@ def return_gt(index: Optional[int] = None):
         return simulated_x[index].unsqueeze(0)
     else:
         return simulated_x
+
+
+if __name__ == "__main__":
+    generate_xo()
