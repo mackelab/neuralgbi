@@ -54,9 +54,9 @@ class UniformNoise1D:
         x_true = self.simulate_noiseless(theta)
         x_low = x_true - self.epsilon
         x_high = x_true + self.epsilon
-        expected_value_of_d = self._eval_distance_integral(
+        expected_value_of_d = (self._eval_distance_integral(
             x_high
-        ) - self._eval_distance_integral(x_low)
+        ) - self._eval_distance_integral(x_low)).squeeze(1)
         return expected_value_of_d
 
     def potential(self, theta):
