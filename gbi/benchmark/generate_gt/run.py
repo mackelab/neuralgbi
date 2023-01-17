@@ -11,6 +11,7 @@ from hydra.utils import get_original_cwd, to_absolute_path
 import logging
 
 from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
+from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
 from gbi.benchmark.generate_gt.mcmc import run_mcmc
 from gbi.benchmark.generate_gt.flow import train_flow
 from gbi.benchmark.generate_gt.rejection import run_rejection
@@ -30,6 +31,8 @@ def run(cfg: DictConfig) -> None:
     # Define task.
     if cfg.task.name == "linear_gaussian":
         task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
+    elif cfg.task.name == "uniform_1d":
+        task = UniformNoise1D(x_o=x_o, beta=cfg.task.beta)
     else:
         raise NameError
 
