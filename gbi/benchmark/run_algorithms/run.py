@@ -54,14 +54,13 @@ def run(cfg: DictConfig) -> None:
     inference = GBInference(
         prior=task.prior, distance_func=None, do_precompute_distances=True
     )
+    inference = inference.append_simulations(theta, x, x_target=x_target)
     inference.initialize_distance_estimator(
         num_layers=cfg.net.num_layers,
         num_hidden=cfg.net.num_hidden,
         net_type=cfg.net.net_type,
     )
-    _ = inference.append_simulations(theta, x, x_target=x_target).train(
-        training_batch_size=cfg.net.training_batch_size
-    )
+    inference.train(training_batch_size=cfg.net.training_batch_size)
     potential_fn = inference.get_potential(x_o=x_o, beta=cfg.task.beta)
     theta_transform = mcmc_transform(task.prior)
     posterior = MCMCPosterior(

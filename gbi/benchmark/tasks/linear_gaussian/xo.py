@@ -3,15 +3,15 @@ from typing import Optional
 import os
 
 import torch
-from gbi.tasks.linear_gaussian.task import Task
+from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
 
 
 def generate_xo():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     _ = torch.manual_seed(0)
-    task = Task()
+    task = LinearGaussian()
     theta_gt = task.prior.sample((10,))
-    simulated_x = task.linear_gaussian(theta_gt)
+    simulated_x = task.simulate(theta_gt)
     with open(f"{dir_path}/xo.pkl", "wb") as handle:
         pickle.dump(simulated_x, handle)
     with open(f"{dir_path}/gt.pkl", "wb") as handle:
