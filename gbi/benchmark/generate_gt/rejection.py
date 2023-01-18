@@ -1,8 +1,10 @@
+from typing import Any, Union
 import pickle
 from torch import zeros, Size
 
 from sbi.inference.potentials.base_potential import BasePotential
 from sbi.inference import RejectionPosterior
+from sbi.utils import mcmc_transform
 
 
 class PotentialFN(BasePotential):
@@ -33,17 +35,22 @@ class ProposalClass:
         pass
 
 
-def run_rejection(task):
+def run_rejection(task, config, proposal: Union[str, Any]):
 
-    with open("trained_nn.pkl", "rb") as handle:
-        trained_nn = pickle.load(handle)
+    if proposal == "net":
+        with open("trained_nn.pkl", "rb") as handle:
+            trained_nn = pickle.load(handle)
+        proposal = ProposalClass(trained_nn)
 
-    proposal = ProposalClass(trained_nn)
     potential_fn = PotentialFN(task.prior, x_o=task.x_o, device="cpu", task=task)
+    transform = mcmc_transform(task.prior, device="cpu")
 
     posterior = RejectionPosterior(
         potential_fn=potential_fn,
+        theta_transform=transform,
         proposal=proposal,
+        num_samples_to_find_max=config.num_samples_to_find_max,
+        num_iter_to_find_max=config.num_iter_to_find_max,
     )
     samples = posterior.sample((10_000,))
 

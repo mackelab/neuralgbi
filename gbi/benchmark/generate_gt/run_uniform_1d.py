@@ -10,7 +10,7 @@ from hydra.utils import get_original_cwd, to_absolute_path
 
 import logging
 
-from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
+from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
 from gbi.benchmark.generate_gt.mcmc import run_mcmc
 from gbi.benchmark.generate_gt.flow import train_flow
 from gbi.benchmark.generate_gt.rejection import run_rejection
@@ -28,7 +28,7 @@ def run(cfg: DictConfig) -> None:
     x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
 
     # Define task.
-    task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
+    task = UniformNoise1D(x_o=x_o, beta=cfg.task.beta)
 
     if cfg.seed is None:
         seed = int((time.time() % 1) * 1e7)
@@ -39,9 +39,7 @@ def run(cfg: DictConfig) -> None:
     # Run ground truth suite.
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
-    run_mcmc(task)
-    train_flow(**cfg.flow)
-    run_rejection(task, proposal="net", config=cfg.rejection)
+    run_rejection(task, proposal=task.prior, config=cfg.rejection)
 
 
 if __name__ == "__main__":

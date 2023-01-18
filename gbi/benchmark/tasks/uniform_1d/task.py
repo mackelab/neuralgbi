@@ -15,6 +15,7 @@ class UniformNoise1D:
         epsilon: Union[Tensor, float] = 0.25,
         x_o: Optional[Tensor] = None,
     ):
+        """Suggested beta: [10, 50, 250]"""
         # Set seed.
         _ = torch.manual_seed(seed)
 
@@ -46,17 +47,21 @@ class UniformNoise1D:
     def simulate(self, theta: Tensor) -> Tensor:
         """Simulator with U[-eps, eps] noise applied."""
         # Get uniform noise of [-epsilon, epsilon].
+        if theta.ndim == 1:
+            theta = theta.unsqueeze(0)
         noise = self.noise_likelihood.sample((theta.shape[0],))  # type: ignore
         return self.simulate_noiseless(theta) + noise
 
     def distance_fn(self, theta):
         """Computes E_{x|t}[(x - x_o)^2]."""
+        if theta.ndim == 1:
+            theta = theta.unsqueeze(0)
         x_true = self.simulate_noiseless(theta)
         x_low = x_true - self.epsilon
         x_high = x_true + self.epsilon
-        expected_value_of_d = (self._eval_distance_integral(
-            x_high
-        ) - self._eval_distance_integral(x_low)).squeeze(1)
+        expected_value_of_d = (
+            self._eval_distance_integral(x_high) - self._eval_distance_integral(x_low)
+        ).squeeze(1)
         return expected_value_of_d
 
     def potential(self, theta):
