@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 from typing import Any, Callable, Dict, Optional, Union
-
+from copy import deepcopy
 import numpy as np
 import torch
-from torch import Tensor, nn, optim, functional
+from torch import Tensor, nn, optim
 from torch.utils.data import TensorDataset, DataLoader
 from torch.distributions import Distribution
 
@@ -43,6 +43,7 @@ class GBInference:
         num_layers: int,
         num_hidden: int,
         net_type: str = "resnet",
+        positive_constraint_fn: str = None, 
         net_kwargs: Optional[Dict] = {},
     ):
         """Initialize neural network for distance regression."""
@@ -52,21 +53,20 @@ class GBInference:
             num_layers,
             num_hidden,
             net_type,
+            positive_constraint_fn,
             **net_kwargs,
         )
 
     def train(
         self,
         distance_net: Optional[nn.Module] = None,
-        training_batch_size: int = 100,
-        n_epochs: int = 100,
+        training_batch_size: int = 500,
+        max_n_epochs: int = 1000,
+        stop_after_counter_reaches: int = 20,
         validation_fraction: float = 0.1,
-        print_every_n: int = 10,
+        print_every_n: int = 20,
         plot_losses: bool = True,
-    ):
-
-        ## TO DO:
-        ## TAKE IS_CONVERGED FROM SBI
+    ) -> nn.Module:
 
         # Can use custom distance net, otherwise take existing in class.
         if distance_net == None:
@@ -74,19 +74,12 @@ class GBInference:
         else:
             self.distance_net = distance_net
 
-        # Move the variables just for convenience.
-        idx_train, theta, x_target, dist_precomputed = (
-            self.idx_train,
-            self.theta,
-            self.x_target,
-            self.distance_precomputed,
-        )
         # Define loss and optimizer.
         nn_loss = nn.MSELoss()
         optimizer = optim.Adam(distance_net.parameters())
 
         # Splitting train and validation set
-        dataset = TensorDataset(idx_train)
+        dataset = TensorDataset(self.idx_train)
         train_set, val_set = torch.utils.data.random_split(
             dataset,
             (Tensor([1 - validation_fraction, validation_fraction]) * len(dataset)).to(
@@ -99,8 +92,10 @@ class GBInference:
         theta_val, x_val, dist_val = self._idx_to_data(val_set[:])
 
         # Training loop.
-        train_losses, val_losses = [], []
-        for e in range(n_epochs):
+        train_losses, val_losses = [], []        
+        epoch = 0
+        self._val_loss = torch.inf
+        while epoch <= max_n_epochs and not self._check_convergence(epoch, stop_after_counter_reaches):
             for i_b, idx_batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
@@ -117,20 +112,55 @@ class GBInference:
                 train_losses.append(l.detach())
 
             # Compute validation loss each epoch.
-            dist_pred = distance_net(theta_val, x_val).squeeze()
-            l_val = nn_loss(dist_val, dist_pred)
-            val_losses.append([i_b * e, l_val.detach()])
+            with torch.no_grad():
+                dist_pred = distance_net(theta_val, x_val).squeeze()
+                self._val_loss = nn_loss(dist_val, dist_pred).item()
+                val_losses.append([i_b * epoch, self._val_loss])
 
             # Print validation loss
-            if e % print_every_n == 0:
-                print(f"{e}: train loss: {l:.6f}, val loss: {l_val:.6f}")
+            if epoch % print_every_n == 0:
+                print(f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}")
+
+            epoch+=1
+            
+        print(f"Network converged after {epoch-1} of {max_n_epochs} epochs.")
 
         # Plot loss curves for convenience.
-        train_losses = torch.Tensor(train_losses)
-        val_losses = torch.Tensor(val_losses)
+        self.train_losses = torch.Tensor(train_losses)
+        self.val_losses = torch.Tensor(val_losses)
         if plot_losses:
-            self._plot_losses(train_losses, val_losses)
-        return distance_net
+            self._plot_losses(self.train_losses, self.val_losses)
+
+        # Avoid keeping the gradients in the resulting network, which can
+        # cause memory leakage when benchmarking.
+        distance_net.zero_grad(set_to_none=True)
+        return deepcopy(distance_net)
+
+
+    def _check_convergence(self, counter: int, stop_after_counter_reaches: int) -> bool:
+        """Return whether the training converged yet and save best model state so far.
+        Checks for improvement in validation performance over previous batches or epochs.        
+        """
+        converged = False
+
+        assert self.distance_net is not None
+        distance_net = self.distance_net
+
+        # (Re)-start the epoch count with the first epoch or any improvement.
+        if counter == 0 or self._val_loss < self._best_val_loss:
+            self._best_val_loss = self._val_loss
+            self._counts_since_last_improvement = 0
+            self._best_model_state_dict = deepcopy(distance_net.state_dict())
+        else:
+            self._counts_since_last_improvement += 1
+
+        # If no validation improvement over many epochs, stop training.
+        if self._counts_since_last_improvement > stop_after_counter_reaches - 1:
+            distance_net.load_state_dict(self._best_model_state_dict)
+            converged = True            
+
+        return converged
+
 
     def build_amortized_GLL(self, distance_net: nn.Module = None):
         """Build generalized likelihood function from distance predictor."""
@@ -236,14 +266,21 @@ class DistanceEstimator(nn.Module):
                 num_blocks=num_layers,
                 dropout_probability=dropout_prob,
                 use_batch_norm=use_batch_norm,
-            )    
+            )
+        else:
+            raise NotImplementedError
+
         # ### TO DO: add activation at the end to force positive distance
-        # if positive_constraint_fn=='relu':
-        #     net = nn.Sequential(net, nn.ReLU())
-        # elif positive_constraint_fn=='exponential':
-        #     raise NotImplementedError()
-        # else:
-        #     raise NotImplementedError()
+        if positive_constraint_fn==None:
+            self.positive_constraint_fn = lambda x: x
+        elif positive_constraint_fn=='relu':
+            self.positive_constraint_fn = nn.functional.relu
+        elif positive_constraint_fn=='exponential':
+            self.positive_constraint_fn = torch.exp
+        elif positive_constraint_fn=='softplus':            
+            self.positive_constraint_fn = nn.functional.softplus            
+        else:
+            raise NotImplementedError
 
         self.net = net
             
@@ -251,10 +288,8 @@ class DistanceEstimator(nn.Module):
     def forward(self, theta, x):
         """
         Predicts distance between theta and x.
-        """
-        return self.net(torch.concat((theta, x), dim=-1))
-        # return self.net(torch.concat((theta, x), dim=-1)).exp()
-        # return nn.functional.softplus(self.net(torch.concat((theta, x), dim=-1)))
+        """    
+        return self.positive_constraint_fn(self.net(torch.concat((theta, x), dim=-1)))
 
 
 
