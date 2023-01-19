@@ -15,7 +15,7 @@ class UniformNoise1D:
         epsilon: Union[Tensor, float] = 0.25,
         x_o: Optional[Tensor] = None,
     ):
-        """Suggested beta: [10, 50, 250]"""
+        """Suggested beta: [4, 20, 100]"""
         # Set seed.
         _ = torch.manual_seed(seed)
 
@@ -61,7 +61,7 @@ class UniformNoise1D:
         x_high = x_true + self.epsilon
         expected_value_of_d = (
             self._eval_distance_integral(x_high) - self._eval_distance_integral(x_low)
-        ).squeeze(1) / (2*self.epsilon)
+        ).squeeze(1) / (2 * self.epsilon)
         return expected_value_of_d
 
     def potential(self, theta):

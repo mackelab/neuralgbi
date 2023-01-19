@@ -15,6 +15,8 @@ class TwoMoonsGBI(TwoMoonsSBIBM):
         x_limits: Tensor = Tensor([[-1.2, 0.4],[-1.6, 1.6]]),
         x_resolutions: Tensor = Tensor([500,500]),
     ):
+        """Recommended beta: [10, 100, 1000]
+        """
         # Subclass of Two Moons task from SBI benchmark.
         super().__init__()
         
