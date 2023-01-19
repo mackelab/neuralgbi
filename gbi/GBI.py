@@ -88,7 +88,7 @@ class GBInference:
                 optimizer.zero_grad()
 
                 # load batch of theta, x, and pre-computed distances
-                theta_batch, x_batch, dist_batch = self._idx_to_data(idx_batch)
+                theta_batch, x_batch, dist_batch = self._idx_to_data(idx_batch)                
 
                 # forward pass for distances
                 dist_pred = distance_net(theta_batch, x_batch).squeeze()
