@@ -29,7 +29,7 @@ log = logging.getLogger("run_algo")
 def run(cfg: DictConfig) -> None:
     # Get high-level path.
     dir_path = get_original_cwd()
-    
+
     full_path_prepend = f"{dir_path}/../tasks/{cfg.task.name}/"
     ### WHERE SHOULD THINGS BE SAVED/LOADED?
 
@@ -66,7 +66,7 @@ def run(cfg: DictConfig) -> None:
     ### SAVE
 
     # Train inference algorithms.
-    train_GBI() # Should GBI get access to observations?
+    train_GBI()  # Should GBI get access to observations?
     train_NPE()
     train_NLE()
     train_ABC()
@@ -74,7 +74,7 @@ def run(cfg: DictConfig) -> None:
     ####### Training script should end here.
 
     ### Inference.
-    # Get x_o 
+    # Get x_o
     dir_path = get_original_cwd()
     with open(f"{dir_path}/../tasks/{cfg.task.name}/xo.pkl", "rb") as handle:
         simulated_x = pickle.load(handle)
@@ -96,10 +96,6 @@ def run(cfg: DictConfig) -> None:
     ## C2ST
     ## Mean distance of posterior predictives.
     # Something else that rewards broad coverage?
-
-    
-
-    
 
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
@@ -177,4 +173,3 @@ pseudo code:
         - c2st
         - posterior predictive distance
 """
-
