@@ -44,7 +44,12 @@ class TwoMoonsGBI(TwoMoonsSBIBM):
     def simulate(self, theta: Tensor) -> Tensor:
         """Pass-through to use sbibm task simulator."""
         return self.simulator(theta)
-        
+    
+    def set_x_o(self, x_o: Tensor):
+        self.x_o = x_o
+        # Recompute grid based on new x_o.        
+        self.distance_grid = (self.x_grid - self.x_o).pow(2).mean(axis=1)
+
     def distance_fn(self, theta: Tensor) -> Tensor:
         """Compute distance function, integrate over grid of x."""
         # Check x_o exists and that theta is 2D.
@@ -52,13 +57,15 @@ class TwoMoonsGBI(TwoMoonsSBIBM):
         theta = atleast_2d(theta)
             
         # Only make the x-grid and compute distance on the grid once.
+        # NOTE: setting x_o manually does not trigger recomputing the grid
+        # and therefore results in the WRONG grid! Use self.set_x_o().
         if self.dx2==None:
             self.x_grid, self.dx2 = self.make_x_grid()
             self.distance_grid = (self.x_grid - self.x_o).pow(2).mean(axis=1)
         
         # Compute integral d(x,x_o)*p(x|theta)*dx^2 over the grid.
         integral = stack([(self.distance_grid * self._likelihood(th, self.x_grid, log=True).exp() * self.dx2).sum() for th in theta], dim=0)
-        return integral
+        return integral * torch.pi
     
     def potential(self, theta: Tensor) -> Tensor:
         """Potential for GBI ground truth posterior."""
