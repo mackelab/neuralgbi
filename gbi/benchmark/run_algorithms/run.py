@@ -16,31 +16,90 @@ from sbi.utils import mcmc_transform
 from sbi.utils.metrics import c2st
 
 from gbi.GBI import GBInference
+from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
+from gbi.benchmark.tasks.two_moons.task import TwoMoonsGBI
 from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
+from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
+from gbi import distances
 
 log = logging.getLogger("run_algo")
 
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run")
 def run(cfg: DictConfig) -> None:
-
+    # Get high-level path.
     dir_path = get_original_cwd()
+    
+    full_path_prepend = f"{dir_path}/../tasks/{cfg.task.name}/"
+    ### WHERE SHOULD THINGS BE SAVED/LOADED?
 
-    with open(f"{dir_path}/../tasks/{cfg.task.name}/xo.pkl", "rb") as handle:
-        simulated_x = pickle.load(handle)
-    x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
-
-    # Define task.
+    ### Define task and distance function.
+    distance_func = distances.mse_dist
     if cfg.task.name == "linear_gaussian":
-        task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
+        Task = LinearGaussian
+    elif cfg.task.name == "two_moons":
+        Task = TwoMoonsGBI
+    elif cfg.task.name == "uniform_1d":
+        Task = UniformNoise1D
+    elif cfg.task.name == "gaussian_mixture":
+        Task = GaussianMixture
+        distance_func = distances.mmd_dist
     else:
         raise NameError
 
+    ### Sample and simulate from task.
+    # Set seed
     if cfg.seed is None:
         seed = int((time.time() % 1) * 1e7)
     else:
         seed = cfg.seed
-    np.savetxt("seed.txt", np.asarray([seed]))
+    np.savetxt(full_path_prepend + "seed.txt", np.asarray([seed]))
+
+    # Sample and simulate.
+    _ = torch.manual_seed(seed)
+    _ = np.random.seed(seed=seed)
+    task = Task(seed=seed)
+    theta = Task.prior.sample((cfg.training_simulation_budget,))
+    x = Task.simulate(theta)
+
+    # Save simulations.
+    ### SAVE
+
+    # Train inference algorithms.
+    train_GBI() # Should GBI get access to observations?
+    train_NPE()
+    train_NLE()
+    train_ABC()
+
+    ####### Training script should end here.
+
+    ### Inference.
+    # Get x_o 
+    dir_path = get_original_cwd()
+    with open(f"{dir_path}/../tasks/{cfg.task.name}/xo.pkl", "rb") as handle:
+        simulated_x = pickle.load(handle)
+    x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
+
+    # # Define task.
+    # if cfg.task.name == "linear_gaussian":
+    #     task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
+    # else:
+    #     raise NameError
+
+    # Load inference object (and create posterior if necessary).
+
+    # Sample posterior.
+
+    # Simulate posterior predictives
+
+    # Compute metrics.
+    ## C2ST
+    ## Mean distance of posterior predictives.
+    # Something else that rewards broad coverage?
+
+    
+
+    
 
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
@@ -89,3 +148,33 @@ def run(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     run()
+
+
+"""
+pseudo code:
+- for each task:
+    - fix seed
+    - sample theta, simulate x. [simulation_budget]
+    - save training sims ??
+    
+    > training
+    - GBI [network_params]
+        - set task specific dist_func?
+        - include x_os ??
+    - NPE, NLE, ABC [params]
+    - save trained networks ??
+
+    > sampling [n_samples]
+    - for each x_o
+        - for each beta:
+            - sample {GBI, NLE}
+        - sample {NPE, ABC}
+        - simulate
+        - save test sims ??
+
+    > evaluate
+    - for each x_o, beta
+        - c2st
+        - posterior predictive distance
+"""
+
