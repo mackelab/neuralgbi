@@ -14,7 +14,7 @@ flow:
   training_batch_size: 500
 
 rejection:
-  num_samples_to_find_max: 10000
+  num_samples_to_find_max: 100
   num_iter_to_find_max: 100
 hydra:
   run:
