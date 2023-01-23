@@ -22,8 +22,8 @@ log = logging.getLogger("run_benchmark_gt")
 def run(cfg: DictConfig) -> None:
 
     dir_path = get_original_cwd()
-
-    with open(f"{dir_path}/../tasks/{cfg.task.name}/xo.pkl", "rb") as handle:
+    
+    with open(f"{dir_path}/../tasks/{cfg.task.name}/xos/xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl", "rb") as handle:
         simulated_x = pickle.load(handle)
     x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
 

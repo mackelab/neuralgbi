@@ -25,6 +25,7 @@ def run(cfg: DictConfig) -> None:
 
     dir_path = get_original_cwd()
 
+    # TO DO: change to new folder structure
     with open(f"{dir_path}/../tasks/{cfg.task.name}/xo.pkl", "rb") as handle:
         simulated_x = pickle.load(handle)
     x_o = simulated_x[cfg.task.xo_index]
