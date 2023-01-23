@@ -3,6 +3,7 @@ from typing import Optional
 import os
 import sys
 import torch
+from pathlib import Path
 
 
 # Make this script generate x for all tasks.
@@ -48,7 +49,9 @@ def generate_x_misspecified(task, n_observations: int = 10, diffusion_scale = 0.
 
 def generate_xo(task_name='uniform_1d', n_observations=10):
     """Generate observations, for training and testing."""
-    dir_path = os.path.dirname(os.path.realpath(__file__)) + '/' + task_name
+    dir_path = os.path.dirname(os.path.realpath(__file__)) + '/' + task_name + '/xos/'
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+    
     print(dir_path)
 
     if task_name == 'uniform_1d':
@@ -60,6 +63,9 @@ def generate_xo(task_name='uniform_1d', n_observations=10):
     elif task_name == 'linear_gaussian':
         from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
         task = LinearGaussian(seed=42)
+    elif task_name == 'gaussian_mixture':
+        from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
+        task = GaussianMixture(seed=42)
     else:
         raise NameError("Task doesn't exist.")
 
@@ -83,7 +89,7 @@ def generate_xo(task_name='uniform_1d', n_observations=10):
 
 def pickle_dump(full_path, data_dump):
     with open(full_path, "wb") as handle:
-        pickle.dump(data_dump, handle)        
+        pickle.dump(data_dump, handle)
 
 
 # def return_xo(index: Optional[int] = None):

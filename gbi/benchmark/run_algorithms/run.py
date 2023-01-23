@@ -63,7 +63,7 @@ def run(cfg: DictConfig) -> None:
     x = Task.simulate(theta)
 
     # Save simulations.
-    ### SAVE
+    ### SAVE?
 
     # Train inference algorithms.
     train_GBI()  # Should GBI get access to observations?
