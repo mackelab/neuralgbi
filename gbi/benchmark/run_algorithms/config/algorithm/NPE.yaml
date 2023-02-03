@@ -1,0 +1,3 @@
+name: 'NPE'
+density_estimator: 'nsf'
+sigmoid_theta: True

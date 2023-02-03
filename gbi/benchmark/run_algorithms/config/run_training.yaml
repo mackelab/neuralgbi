@@ -1,0 +1,20 @@
+defaults:
+  - _self_
+  - algorithm: GBI
+
+seed: 0
+
+task:
+  num_simulations: 1000
+  name: "linear_gaussian"
+  
+
+hydra:
+  run:
+    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/${algorithm.name}
+  sweep:
+    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+    subdir: ${algorithm.name}
+  job:
+    chdir: True
+
