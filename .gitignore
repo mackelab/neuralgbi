@@ -1,3 +1,6 @@
+# exclude all results
+results/**
+
 # sbi stuff
 **/sbi-logs/**
 

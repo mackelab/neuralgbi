@@ -23,6 +23,28 @@ from gbi import distances
 
 log = logging.getLogger("run_algo")
 
+
+def get_task_and_distance_func(cfg):
+    ### Define task and distance function.
+    if cfg.task.name == "linear_gaussian":
+        Task = LinearGaussian
+    elif cfg.task.name == "two_moons":
+        Task = TwoMoonsGBI
+    elif cfg.task.name == "uniform_1d":
+        Task = UniformNoise1D
+    elif cfg.task.name == "gaussian_mixture":
+        Task = GaussianMixture        
+    else:
+        raise NameError
+
+    # Provide appropriate distance function
+    if cfg.task.name == "gaussian_mixture":
+        distance_func = distances.mmd_dist
+    else:
+        distance_func = distances.mse_dist
+
+    return Task, distance_func
+
 def train_NPE(theta, x, task, config):        
     if config.sigmoid_theta:
         # Apply sigmoid on theta to keep into prior range.
@@ -80,23 +102,8 @@ def train_GBI(theta, x, task, config, task_folder):
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_training")
 def run_training(cfg: DictConfig) -> None:
-    ### Define task and distance function.
-    if cfg.task.name == "linear_gaussian":
-        Task = LinearGaussian
-    elif cfg.task.name == "two_moons":
-        Task = TwoMoonsGBI
-    elif cfg.task.name == "uniform_1d":
-        Task = UniformNoise1D
-    elif cfg.task.name == "gaussian_mixture":
-        Task = GaussianMixture        
-    else:
-        raise NameError
-
-    # Provide appropriate distance function
-    if cfg.task.name == "gaussian_mixture":
-        distance_func = distances.mmd_dist
-    else:
-        distance_func = distances.mse_dist
+    # Load task and distance function.
+    Task, distance_func = get_task_and_distance_func(cfg)
 
     ### Sample and simulate from task.
     # Set seed

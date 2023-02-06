@@ -8,66 +8,82 @@ import time
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import get_original_cwd, to_absolute_path
-
-import logging
-
 from sbi.inference import MCMCPosterior
 from sbi.utils import mcmc_transform
-from sbi.utils.metrics import c2st
 
-from pathlib import Path
 
 # Algorithm imports.
 from sbi.inference import SNPE, SNLE
 from gbi.GBI import GBInference
 import gbi.utils.utils as gbi_utils
+from run_training import get_task_and_distance_func
 
-# Task imports.
-from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
-from gbi.benchmark.tasks.two_moons.task import TwoMoonsGBI
-from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
-from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
-from gbi import distances
+
+def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
+    potential_fn = inference.get_potential(x_o=x_o, beta=beta)
+    theta_transform = mcmc_transform(task.prior)
+    posterior = MCMCPosterior(
+            potential_fn,
+            theta_transform=theta_transform,
+            proposal=task.prior,
+            method="slice_np_vectorized",
+            thin=10,
+            warmup_steps=50,
+            num_chains=100,
+            init_strategy="resample",
+        )
+    posterior_samples = posterior.sample((n_samples,))
+    return posterior_samples
+
+def sample_NPE(inference, x_o, task, n_samples=10_000):
+    return inference.build_posterior(prior=task.prior).set_default_x(x_o).sample((n_samples,))
 
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_inference")
 def run_inference(cfg: DictConfig) -> None:    
     # Get directory of, and load trained inference algorithm.
-
-    inference_folder = f'../../'
-    inference = gbi_utils.pickle_load(inference_folder + 'inference.pickle')
-    print(inference)
+    inference_dir = f'../../../../'
+    inference = gbi_utils.pickle_load(inference_dir + 'inference.pickle')    
 
     # Get high-level task path.
     dir_path = get_original_cwd()
     full_path_prepend = f"{dir_path}/../tasks/{cfg.task.name}/"
-    print(full_path_prepend)
 
-    # inference_folder = full_path_prepend + "/trained_inference/"    
+    # Get observation directory and load xo.
+    observation_dir = full_path_prepend + "/xos/"
+    obs_file = f'xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl'
+    xos = gbi_utils.pickle_load(observation_dir + obs_file)
 
-    # Get observation directory.
-    observation_folder = full_path_prepend + "/xos/"    
+    # ### ACTUALLY I DON'T NEED THIS NOW, CAN LOAD GROUND TRUTH LATER IN COMPARISON SCRIPT.
+    # # Get ground-truth posterior samples.
+    # # This is super fucking ugly.
+    # gt_dir = f'../../../../../../ground_truths/{cfg.task.name}/{cfg.gt_datetime}/beta_{cfg.task.beta}/'
+    # xo_dir = gt_dir + f'/obs_{cfg.task.xo_index}_{cfg.task.is_specified}_{cfg.task.is_known}'
+    # gt_posterior_samples = gbi_utils.pickle_load(xo_dir + '/rejection_samples.pkl')    
 
-    # Get ground-truth directory.
-    print('-----')
-    # print(os.listdir(f'../../../../../ground_truths/{cfg.task.name}/{cfg.gt_datetime}/')) # This is super fucking ugly.
-    # gt_folder = f'../{cfg.gt_datetime}/{cfg.algorithm.name}/'
-    gt_folder = f'../../../../../../ground_truths/{cfg.task.name}/{cfg.gt_datetime}/beta_{cfg.task.beta}/'
-    print(gt_folder, os.listdir(gt_folder))
+    # Set seed
+    if cfg.seed is None:
+        seed = int((time.time() % 1) * 1e7)
+    else:
+        seed = cfg.seed
+    np.savetxt("seed.txt", np.asarray([seed]))
+    _ = torch.manual_seed(seed)
+    _ = np.random.seed(seed=seed)
 
-    # ### Define task and distance function.
-    # distance_func = distances.mse_dist
-    # if cfg.task.name == "linear_gaussian":
-    #     Task = LinearGaussian
-    # elif cfg.task.name == "two_moons":
-    #     Task = TwoMoonsGBI
-    # elif cfg.task.name == "uniform_1d":
-    #     Task = UniformNoise1D
-    # elif cfg.task.name == "gaussian_mixture":
-    #     Task = GaussianMixture
-    #     distance_func = distances.mmd_dist
-    # else:
-    #     raise NameError
+    # Get task and distance function, only need for prior.
+    Task, _ = get_task_and_distance_func(cfg)    
+    task = Task(seed=seed)
+
+    ### Sample from inference algorithm and save
+    if cfg.algorithm.name == 'NPE':
+        posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task)
+    elif cfg.algorithm.name == 'GBI':
+        posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task)
+    
+    gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
+
+
+
 
     # ### Sample and simulate from task.
     # # Set seed

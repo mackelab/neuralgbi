@@ -6,8 +6,8 @@ seed: 0
 trained_inference_datetime: ???
 
 task:
-  name: "1d_uniform"
-  beta: 1000
+  name: "uniform_1d"
+  beta: 100
   xo_index: 0  
   is_specified: "specified"
   is_known: "known"
@@ -16,11 +16,12 @@ task:
 
 hydra:
   run:
-    # dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/${algorithm.name}
-    dir: ../../../results/benchmark/algorithms/${task.name}/${trained_inference_datetime}/${algorithm.name}/posterior_inference/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+    dir: ../../../results/benchmark/algorithms/${task.name}/${trained_inference_datetime}/${algorithm.name}/posterior_inference/${now:%Y_%m_%d}__${now:%H_%M_%S}/beta_${task.beta}/obs_${task.xo_index}_${task.is_specified}_${task.is_known}
   sweep:
-    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/
-    subdir: ${algorithm.name}
+    # Only sweep over beta for GBI
+    dir: ../../../results/benchmark/algorithms/${task.name}/${trained_inference_datetime}/${algorithm.name}/posterior_inference/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+    subdir: beta_${task.beta}/obs_${task.xo_index}_${task.is_specified}_${task.is_known}
   job:
     chdir: True
 
+# python run_inference.py -m algorithm=GBI trained_inference_datetime='2023_02_06__19_18_26' task.name='uniform_1d' task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified=specified,misspecified task.is_known=known,unknown task.beta=4,20,100
