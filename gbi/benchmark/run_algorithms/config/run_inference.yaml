@@ -1,0 +1,26 @@
+defaults:
+  - _self_
+  - algorithm: GBI
+
+seed: 0
+trained_inference_datetime: ???
+
+task:
+  name: "1d_uniform"
+  beta: 1000
+  xo_index: 0  
+  is_specified: "specified"
+  is_known: "known"
+
+  
+
+hydra:
+  run:
+    # dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/${algorithm.name}
+    dir: ../../../results/benchmark/algorithms/${task.name}/${trained_inference_datetime}/${algorithm.name}/posterior_inference/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+  sweep:
+    dir: ../../../results/benchmark/algorithms/${task.name}/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+    subdir: ${algorithm.name}
+  job:
+    chdir: True
+

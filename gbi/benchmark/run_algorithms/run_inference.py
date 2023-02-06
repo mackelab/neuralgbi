@@ -30,57 +30,66 @@ from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
 from gbi import distances
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="run")
-def run_inference(cfg: DictConfig) -> None:
-    # Get high-level path.
+@hydra.main(version_base="1.1", config_path="config", config_name="run_inference")
+def run_inference(cfg: DictConfig) -> None:    
+    # Get directory of, and load trained inference algorithm.
+
+    inference_folder = f'../../'
+    inference = gbi_utils.pickle_load(inference_folder + 'inference.pickle')
+    print(inference)
+
+    # Get high-level task path.
     dir_path = get_original_cwd()
     full_path_prepend = f"{dir_path}/../tasks/{cfg.task.name}/"
     print(full_path_prepend)
 
-    # Get inference directory.
-    inference_folder = full_path_prepend + "/trained_inference/"    
+    # inference_folder = full_path_prepend + "/trained_inference/"    
 
     # Get observation directory.
     observation_folder = full_path_prepend + "/xos/"    
 
     # Get ground-truth directory.
-    # gt_folder = 
+    print('-----')
+    # print(os.listdir(f'../../../../../ground_truths/{cfg.task.name}/{cfg.gt_datetime}/')) # This is super fucking ugly.
+    # gt_folder = f'../{cfg.gt_datetime}/{cfg.algorithm.name}/'
+    gt_folder = f'../../../../../../ground_truths/{cfg.task.name}/{cfg.gt_datetime}/beta_{cfg.task.beta}/'
+    print(gt_folder, os.listdir(gt_folder))
 
-    ### Define task and distance function.
-    distance_func = distances.mse_dist
-    if cfg.task.name == "linear_gaussian":
-        Task = LinearGaussian
-    elif cfg.task.name == "two_moons":
-        Task = TwoMoonsGBI
-    elif cfg.task.name == "uniform_1d":
-        Task = UniformNoise1D
-    elif cfg.task.name == "gaussian_mixture":
-        Task = GaussianMixture
-        distance_func = distances.mmd_dist
-    else:
-        raise NameError
+    # ### Define task and distance function.
+    # distance_func = distances.mse_dist
+    # if cfg.task.name == "linear_gaussian":
+    #     Task = LinearGaussian
+    # elif cfg.task.name == "two_moons":
+    #     Task = TwoMoonsGBI
+    # elif cfg.task.name == "uniform_1d":
+    #     Task = UniformNoise1D
+    # elif cfg.task.name == "gaussian_mixture":
+    #     Task = GaussianMixture
+    #     distance_func = distances.mmd_dist
+    # else:
+    #     raise NameError
 
-    ### Sample and simulate from task.
-    # Set seed
-    if cfg.seed is None:
-        seed = int((time.time() % 1) * 1e7)
-    else:
-        seed = cfg.seed
-    np.savetxt(full_path_prepend + "seed.txt", np.asarray([seed]))
+    # ### Sample and simulate from task.
+    # # Set seed
+    # if cfg.seed is None:
+    #     seed = int((time.time() % 1) * 1e7)
+    # else:
+    #     seed = cfg.seed
+    # np.savetxt(full_path_prepend + "seed.txt", np.asarray([seed]))
 
-    # Sample and simulate.
-    _ = torch.manual_seed(seed)
-    _ = np.random.seed(seed=seed)
-    task = Task(seed=seed)
+    # # Sample and simulate.
+    # _ = torch.manual_seed(seed)
+    # _ = np.random.seed(seed=seed)
+    # task = Task(seed=seed)
     
-    # Train inference algorithms.
-    task.dist_func_gbi = distance_func
+    # # Train inference algorithms.
+    # task.dist_func_gbi = distance_func
 
-    # Get trained inference object.
-    inference = gbi_utils.pickle_load(inference_folder + 'GBI.pickle')
-    print(inference)
+    # # Get trained inference object.
+    # inference = gbi_utils.pickle_load(inference_folder + 'GBI.pickle')
+    # print(inference)
 
-    # Load all observations.
+    # # Load all observations.
     
 
 
@@ -142,3 +151,7 @@ pseudo code:
         - c2st
         - posterior predictive distance
 """
+
+
+
+

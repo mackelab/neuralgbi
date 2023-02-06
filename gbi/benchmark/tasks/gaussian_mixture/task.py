@@ -14,11 +14,14 @@ class GaussianMixture:
         num_trials: int = 5,
         beta: float = 1.0,
         dim: int = 2,
+        seed: int = 0,
         limits: Tensor = tensor([[-14, 14], [-14, 14]]),
         resolution: int = 250,
         mmd_length_scale: float = 0.01,
     ):
         """Suggested beta: [2.0, 10.0, 50.0]"""
+        # Set seed.
+        _ = torch.manual_seed(seed)
         self.limits = limits
         self.resolution = resolution
         self.prior = BoxUniform(-10 * ones(dim), 10 * ones(dim))
