@@ -74,12 +74,14 @@ def run_inference(cfg: DictConfig) -> None:
     Task, _ = get_task_and_distance_func(cfg)    
     task = Task(seed=seed)
 
+
+    ### TO DO: INCLUDE NLE, NLE-distance, ABC algorithms here.
     ### Sample from inference algorithm and save
     if cfg.algorithm.name == 'NPE':
         posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task)
     elif cfg.algorithm.name == 'GBI':
         posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task)
-    
+
     gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
 
 
