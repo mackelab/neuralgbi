@@ -71,15 +71,25 @@ def generate_xo(task_name='uniform_1d', n_observations=10):
 
     # Generate observed (known) xos.
     theta_gt_known, xo_specified_known = generate_x_specified(task, n_observations)
-    xo_misspecified_known = generate_x_misspecified(task, n_observations)
+    # Generate unobserved xos for test time.
+    theta_gt_unknown, xo_specified_unknown = generate_x_specified(task, n_observations)
+    
+    if task_name == 'gaussian_mixture':
+        # Generate observed (known) xos.
+        theta = task.prior.sample((n_observations,))
+        xo_misspecified_known = task.simulate_misspecified(theta)
+        # Generate unobserved xos for test time.
+        theta = task.prior.sample((n_observations,))
+        xo_misspecified_known = task.simulate_misspecified(theta)
+    else:
+        xo_misspecified_known = generate_x_misspecified(task, n_observations)
+        xo_misspecified_unknown = generate_x_misspecified(task, n_observations)
+    
     # Save theta_gt and xos
     pickle_dump(f"{dir_path}/theta_gt_known.pkl", theta_gt_known)
     pickle_dump(f"{dir_path}/xo_specified_known.pkl", xo_specified_known)
     pickle_dump(f"{dir_path}/xo_misspecified_known.pkl", xo_misspecified_known)
 
-    # Generate unobserved xos for test time.
-    theta_gt_unknown, xo_specified_unknown = generate_x_specified(task, n_observations)
-    xo_misspecified_unknown = generate_x_misspecified(task, n_observations)
     # Save theta_gt and xos
     pickle_dump(f"{dir_path}/theta_gt_unknown.pkl", theta_gt_unknown)
     pickle_dump(f"{dir_path}/xo_specified_unknown.pkl", xo_specified_unknown)
