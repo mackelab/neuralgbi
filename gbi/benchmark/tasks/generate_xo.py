@@ -80,7 +80,7 @@ def generate_xo(task_name='uniform_1d', n_observations=10):
         xo_misspecified_known = task.simulate_misspecified(theta)
         # Generate unobserved xos for test time.
         theta = task.prior.sample((n_observations,))
-        xo_misspecified_known = task.simulate_misspecified(theta)
+        xo_misspecified_unknown = task.simulate_misspecified(theta)
     else:
         xo_misspecified_known = generate_x_misspecified(task, n_observations)
         xo_misspecified_unknown = generate_x_misspecified(task, n_observations)
