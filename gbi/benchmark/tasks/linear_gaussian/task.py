@@ -13,6 +13,7 @@ class LinearGaussian:
         dim: int = 10,
         seed: int = 0,
     ):
+        """Suggested beta: [0.1, 1.0, 10.0]"""
         _ = torch.manual_seed(seed)
         self.prior_mean = zeros((dim,))
         self.prior_cov = eye(dim)
