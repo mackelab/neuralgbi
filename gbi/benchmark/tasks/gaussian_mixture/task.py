@@ -26,6 +26,9 @@ class GaussianMixture:
         self.resolution = resolution
         self.prior = BoxUniform(-10 * ones(dim), 10 * ones(dim))
         self.x_o = x_o
+        # Ensure that shape is [5, 2], not [1, 5, 2].
+        if len(self.x_o.shape) == 3:
+            raise ValueError("Gaussian mixture can not deal with batched observations.")
         self.num_trials = num_trials
         self.beta = beta
         self.mmd_length_scale = mmd_length_scale
