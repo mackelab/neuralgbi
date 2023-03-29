@@ -136,6 +136,13 @@ class GBInference:
         distance_net.zero_grad(set_to_none=True)
         return deepcopy(distance_net)
 
+    def predict_distance(self, theta, x):
+        # Convenience function that does fixes the shape of x.
+        if theta.shape != x.shape:
+            x = x.repeat((theta.shape[0], 1))
+        with torch.no_grad():
+            dist = self.distance_net(theta, x).squeeze(1)
+        return dist
 
     def _check_convergence(self, counter: int, stop_after_counter_reaches: int) -> bool:
         """Return whether the training converged yet and save best model state so far.
@@ -288,7 +295,7 @@ class DistanceEstimator(nn.Module):
     def forward(self, theta, x):
         """
         Predicts distance between theta and x.
-        """    
+        """        
         return self.positive_constraint_fn(self.net(torch.concat((theta, x), dim=-1)))
 
 

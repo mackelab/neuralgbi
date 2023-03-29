@@ -35,8 +35,22 @@ def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
     posterior_samples = posterior.sample((n_samples,))
     return posterior_samples
 
+def sample_eGBI():
+    # Emulator GBI
+    return
+
+
 def sample_NPE(inference, x_o, task, n_samples=10_000):
     return inference.build_posterior(prior=task.prior).set_default_x(x_o).sample((n_samples,))
+
+
+def sample_NLE():
+    # NLE
+    return
+
+def sample_ABC():
+    # ABC
+    return
 
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_inference")
