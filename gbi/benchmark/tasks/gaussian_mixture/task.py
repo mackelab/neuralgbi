@@ -27,7 +27,7 @@ class GaussianMixture:
         self.prior = BoxUniform(-10 * ones(dim), 10 * ones(dim))
         self.x_o = x_o
         # Ensure that shape is [5, 2], not [1, 5, 2].
-        if len(self.x_o.shape) == 3:
+        if (self.x_o!=None) and (len(self.x_o.shape) == 3):
             raise ValueError("Gaussian mixture can not deal with batched observations.")
         self.num_trials = num_trials
         self.beta = beta
@@ -47,8 +47,9 @@ class GaussianMixture:
         return all_samples
 
     def simulate_misspecified(self, theta: Tensor) -> Tensor:
-        """Simulator."""
+        """Simulator."""        
         samples = 0.5 * torch.randn((self.num_trials, *theta.shape)) + theta
+        samples = torch.permute(samples, (1, 0, 2))
         return samples
 
     def build_marginal_dist(self, predicted_mean):

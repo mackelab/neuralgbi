@@ -29,3 +29,10 @@ hydra:
 
 # python run_uniform_1d.py -m task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified='specified','misspecified' task.is_known='known','unknown' task.beta=4,20,100 task.name=uniform_1d
 # python run_two_moons.py -m task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified='specified','misspecified' task.is_known='known','unknown' task.beta=10,100,1000 task.name=two_moons
+
+
+# betas:
+# uniform_1d: 4, 20, 100
+# two_moons: 10, 100, 1000
+# linear_gaussian: 0.1, 1., 10
+# gaussian_mixture: 2., 10., 50.
