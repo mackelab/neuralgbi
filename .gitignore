@@ -4,6 +4,9 @@ results/**
 # sbi stuff
 **/sbi-logs/**
 
+# hydra log
+**/hydra_log/**
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

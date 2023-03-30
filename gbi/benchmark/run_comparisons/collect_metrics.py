@@ -39,8 +39,8 @@ task_betas = {
 algos = ['GBI', 'NPE', 'NLE']
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="collect_samples")
-def collect_samples(cfg: DictConfig) -> None:
+@hydra.main(version_base="1.1", config_path="config", config_name="collect_metrics")
+def collect_metrics(cfg: DictConfig) -> None:
     # load xo, gt posterior samples, and inference samples    
     task_name = cfg.task.name
     betas = task_betas[task_name]
@@ -110,4 +110,4 @@ def collect_samples(cfg: DictConfig) -> None:
     return
 
 if __name__ == "__main__":
-    collect_samples()
+    collect_metrics()
