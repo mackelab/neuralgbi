@@ -239,6 +239,47 @@ class GBInference:
         return theta_batch, x_batch, dist_batch
 
 
+class GBInferenceEmulator:
+    def __init__(
+            self,
+            emulator_net,
+            prior: Distribution,
+            distance_func: Callable,            
+            n_emulator_samples: int = 10,            
+        ):
+        self.distance_func = distance_func
+        self.prior = prior        
+        self.emulator_net = emulator_net
+        self.n_emulator_samples = n_emulator_samples
+
+
+    def build_amortized_GLL(self):
+        """Build generalized likelihood function from emulator."""
+        # Build and return function.
+        def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
+            theta = atleast_2d(theta)
+            x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+            
+            # with torch.no_grad():??
+            dist_pred = self.distance_func(x_emulator, x_o)
+            assert dist_pred.shape == (theta.shape[0],)
+            return dist_pred
+
+        return generalized_loglikelihood
+    
+    def get_potential(self, x_o: Tensor = None, beta: float = 1.0):
+        """Make the potential function. Pass through call to GBIPotenial object."""
+        return GBIPotential(self.prior, self.build_amortized_GLL(), x_o, beta)
+    
+    def build_posterior(
+        self, posterior_func: Callable, x_o: Tensor = None, beta: float = 1.0
+    ):
+        """Create posterior object using the defined potential function."""
+        potential_func = self.get_potential(x_o, beta)
+        posterior = posterior_func(potential_func, self.prior)
+        return posterior
+    
+
 class DistanceEstimator(nn.Module):
     def __init__(
         self,
