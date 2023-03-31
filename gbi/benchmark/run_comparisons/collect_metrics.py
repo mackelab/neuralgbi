@@ -1,20 +1,13 @@
 import torch
-import pickle
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import numpy as np
+import pandas as pd
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
-from hydra.utils import get_original_cwd, to_absolute_path
-
+from omegaconf import DictConfig
 from tqdm import tqdm
-from os import listdir, path
-from sbi.analysis import pairplot
+from os import listdir
+
 from sbi.utils.metrics import c2st as C2ST
-from scipy import stats
-import itertools
-import pandas as pd
 from gbi import distances
 from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
 from gbi.benchmark.tasks.two_moons.task import TwoMoonsGBI
@@ -22,22 +15,12 @@ from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
 from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
 import gbi.utils.utils as gbi_utils
 
-
-
 task_classes = {
     "uniform_1d": UniformNoise1D,
     "two_moons": TwoMoonsGBI,
     "linear_gaussian": LinearGaussian,
     "gaussian_mixture": GaussianMixture
 }
-task_betas = {
-    "uniform_1d": ["4","20","100"],
-    "two_moons": ["10","100","1000"],
-    "linear_gaussian": ["0.1","1.0","10.0"],
-    "gaussian_mixture": ["2.0","10.0","50.0"],
-}
-algos = ['GBI', 'NPE', 'NLE']
-
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_comparisons")
 def collect_metrics(cfg: DictConfig) -> None:
