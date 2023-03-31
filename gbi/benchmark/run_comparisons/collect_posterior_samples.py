@@ -39,7 +39,7 @@ task_betas = {
 algos = ['GBI', 'NPE', 'NLE']
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="collect_samples")
+@hydra.main(version_base="1.1", config_path="config", config_name="run_comparisons")
 def collect_samples(cfg: DictConfig) -> None:
     # load xo, gt posterior samples, and inference samples    
     task_name = cfg.task.name
@@ -100,13 +100,14 @@ def collect_samples(cfg: DictConfig) -> None:
                         if algo == "GBI":
                             posterior_samples[algo][f"beta_{beta}"] = gbi_utils.pickle_load(ps_path)
                         else:
-                            posterior_samples[algo] = gbi_utils.pickle_load(ps_path)
+                            posterior_samples[algo]["beta_1"] = gbi_utils.pickle_load(ps_path)
 
         posterior_samples_collected.append([xo_info, {"xo": xo, "theta_gt": theta_gt,}, posterior_samples])
         
     # Save collected samples
     save_path = f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
-    gbi_utils.pickle_dump(save_path, posterior_samples_collected)    
+    gbi_utils.pickle_dump(save_path, posterior_samples_collected)
+    print(f"All posterior samples saved as: {save_path}")
     return
 
 if __name__ == "__main__":

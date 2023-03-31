@@ -3,16 +3,18 @@ import pickle
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
-from os import listdir, path, getcwd
-from sbi.analysis import pairplot
-from sbi.utils.metrics import c2st as C2ST
-from scipy import stats
-import itertools
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import get_original_cwd, to_absolute_path
 
+from tqdm import tqdm
+from os import listdir, path
+from sbi.analysis import pairplot
+from sbi.utils.metrics import c2st as C2ST
+from scipy import stats
+import itertools
+import pandas as pd
 from gbi import distances
 from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
 from gbi.benchmark.tasks.two_moons.task import TwoMoonsGBI
@@ -20,9 +22,7 @@ from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
 from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
 import gbi.utils.utils as gbi_utils
 
-gt_dir = "../../../results/benchmark/ground_truths/"
-inference_dir = "../../../results/benchmark/algorithms/"
-xo_dir = "../../../gbi/benchmark/tasks/"
+
 
 task_classes = {
     "uniform_1d": UniformNoise1D,
@@ -39,74 +39,50 @@ task_betas = {
 algos = ['GBI', 'NPE', 'NLE']
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="collect_metrics")
+@hydra.main(version_base="1.1", config_path="config", config_name="run_comparisons")
 def collect_metrics(cfg: DictConfig) -> None:
-    # load xo, gt posterior samples, and inference samples    
+    inference_dir = "../../../results/benchmark/algorithms/"
     task_name = cfg.task.name
-    betas = task_betas[task_name]
-    xo_path = f"{xo_dir}/{task_name}/xos/"
+    if task_name == "gaussian_mixture":
+        distance_func = distances.mmd_dist
+    else:
+        distance_func = distances.mse_dist
 
-    # Take the latest runs for GT and inference samples, unless specified.
-    gt_datetime = cfg.gt_datetime
-    if gt_datetime=="None":
-        gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
-    
     inference_datetime = cfg.inference_datetime
     if inference_datetime=="None":
-        inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1] 
+        inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
 
-    # Define all permutatations.
-    xo_combs = [range(10), ['specified', 'misspecified'], ['known', 'unknown']]
-    xo_info_combs = list(itertools.product(*xo_combs)) 
+    # Load posterior samples and GBI object for computing distances
+    posterior_samples_collected = gbi_utils.pickle_load(f'{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl')
+    gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle")
 
-    # Loop through to collect.
-    posterior_samples_collected = []
-    for xo_info in xo_info_combs:
-        # load xos and gt theta        
-        xos = gbi_utils.pickle_load(f"{xo_path}/xo_{xo_info[1]}_{xo_info[2]}.pkl")
-        if xo_info[1]=='specified':
-            theta_gts = gbi_utils.pickle_load(f"{xo_path}/theta_gt_{xo_info[2]}.pkl")            
-        else:
-            theta_gts = torch.ones_like(xos)*torch.nan
+    df_collect = []
+    for i_x in tqdm(range(len(posterior_samples_collected))):
+        xo_info, xo_theta, posterior_samples = posterior_samples_collected[i_x]
+        xo, theta_gt = xo_theta['xo'], xo_theta['theta_gt']
 
-        xo = xos[xo_info[0]]
-        theta_gt = theta_gts[xo_info[0]]
+        for alg, samples_alg in posterior_samples.items():
+            for beta_str, samples in samples_alg.items():
+                beta = float(beta_str.split('_')[-1])
+                task = task_classes[task_name](beta=beta, x_o=xo)            
 
-        # load gt posterior samples
-        posterior_samples = {}
+                # compute predictives and summary
+                predictives = gbi_utils.compute_predictives(samples, task, distance_func, gbi_inference)
+                summary = gbi_utils.compute_moments(predictives)
+                df_summary = pd.DataFrame(summary, dtype=float)
 
-        # Take the latest run
-        posterior_samples['GT'] = {}
-        for beta in betas:
-            gt_path = f"{gt_dir}/{task_name}/{gt_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}"
-            posterior_samples['GT'][f"beta_{beta}"] = gbi_utils.pickle_load(gt_path + "/rejection_samples.pkl")
-            
-        # load inference samples
-        for algo in algos:
-            posterior_dir = f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/posterior_inference/"    
-            # Load inference algorithm
-            if algo == "GBI":
-                gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/inference.pickle")
-                
-            if path.isdir(posterior_dir):
-                # Take the latest run
-                posterior_datetime = np.sort(listdir(posterior_dir))[-1]
-                posterior_samples[algo] = {}
+                # compute C2ST against GT GBI posterior if it's a GBI algorithm
+                df_summary['c2st'] = torch.nan
+                if 'GBI' in alg:
+                    df_summary['c2st'] = C2ST(samples, posterior_samples['GT'][beta_str])
 
-                for beta in betas:
-                    ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"                    
-                    if path.exists(ps_path):
-                        # posterior sample exists, load                        
-                        if algo == "GBI":
-                            posterior_samples[algo][f"beta_{beta}"] = gbi_utils.pickle_load(ps_path)
-                        else:
-                            posterior_samples[algo] = gbi_utils.pickle_load(ps_path)
+                df_info = pd.DataFrame([[task_name, *xo_info, alg, beta]], columns=['task', 'xo_idx', 'xo_specified', 'xo_known', 'algorithm', 'beta'])
+                df_collect.append(pd.concat((df_info, df_summary), axis=1))    
 
-        posterior_samples_collected.append([xo_info, {"xo": xo, "theta_gt": theta_gt,}, posterior_samples])
-        
-    # Save collected samples
-    save_path = f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
-    gbi_utils.pickle_dump(save_path, posterior_samples_collected)    
+    df_summaries = pd.concat(df_collect, ignore_index=True)
+    save_path = f'{inference_dir}/{task_name}/{inference_datetime}/comparison_summaries.csv'
+    print(f"Summary CSV saved as {save_path}")
+    df_summaries.to_csv(save_path)
     return
 
 if __name__ == "__main__":

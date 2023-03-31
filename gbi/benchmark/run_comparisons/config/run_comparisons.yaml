@@ -1,0 +1,15 @@
+defaults:
+  - _self_  
+
+task:
+  name: "uniform_1d"
+  
+gt_datetime: ???
+inference_datetime: ???
+
+hydra:
+  run:
+    dir: ./hydra_log/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+  job:
+    chdir: False
+
