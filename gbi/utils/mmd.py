@@ -10,7 +10,7 @@ def ground_truth_mmd(
     dists_y: List[Distribution],
     y_limits: Tensor,
     y_res: int = 100,
-    scale: float = 0.1,
+    scale: float = 0.01,
 ):
     term1 = sample_based_mmd_marginal(
         x,
@@ -36,14 +36,14 @@ def ground_truth_mmd(
     return term1 + term3 - 2 * term2
 
 
-def sample_based_mmd(x, y, scale: float = 0.1):
+def sample_based_mmd(x, y, scale: float = 0.01):
     term1 = sample_based_mmd_marginal(x, x, scale=scale)
     term2 = sample_based_mmd_marginal(x, y, scale=scale)
     term3 = sample_based_mmd_marginal(y, y, scale=scale)
     return term1 + term3 - 2 * term2
 
 
-def sample_based_mmd_marginal(x, y, scale: float = 0.1):
+def sample_based_mmd_marginal(x, y, scale: float = 0.01):
     """Assumes diagonal likelihood and sums over each dimension. Sum turns into
     product because exp(sum) = prod(exp)
     """
@@ -57,7 +57,7 @@ def sample_based_mmd_marginal(x, y, scale: float = 0.1):
     return term
 
 
-def sample_based_mmd_term(x, y, scale: float = 0.1):
+def sample_based_mmd_term(x, y, scale: float = 0.01):
     num_x = x.shape[0]
     num_y = y.shape[0]
     xo1 = x.repeat((num_y, 1))
@@ -74,7 +74,7 @@ def integral_based_mmd_marginal(
     y_limits: Tensor,
     x_res: int = 100,
     y_res: int = 100,
-    scale: float = 0.1,
+    scale: float = 0.01,
 ):
     """Assumes diagonal likelihood and sums over each dimension. Sum turns into
     product because exp(sum) = prod(exp)
@@ -104,7 +104,7 @@ def integral_mmd_term(
     y_limits: Tensor,
     x_res: int = 100,
     y_res: int = 100,
-    scale: float = 0.1,
+    scale: float = 0.01,
 ):
     x_range = torch.linspace(x_limits[0].item(), x_limits[1].item(), x_res).unsqueeze(1)
     y_range = torch.linspace(y_limits[0].item(), y_limits[1].item(), y_res).unsqueeze(1)
@@ -124,7 +124,7 @@ def sample_integral_mixed_mmd_marginal(
     y_dist: List[Distribution],
     y_limits: Tensor,
     y_res: int = 100,
-    scale: float = 0.1,
+    scale: float = 0.01,
 ):
     """Assumes diagonal likelihood and sums over each dimension. Sum turns into
     product because exp(sum) = prod(exp)
@@ -146,7 +146,7 @@ def sample_integral_mixed_mmd_term(
     y_dist: Distribution,
     y_limits: Tensor,
     y_res: int = 100,
-    scale: float = 0.1,
+    scale: float = 0.01,
 ):
     y_range = torch.linspace(y_limits[0].item(), y_limits[1].item(), y_res).unsqueeze(1)
     y_repeat = y_range.repeat((x.shape[0], 1))
