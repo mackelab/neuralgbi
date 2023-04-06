@@ -13,6 +13,7 @@ from sbi.utils import get_nn_models
 from sbi.inference import SNPE, SNLE
 from gbi.GBI import GBInference
 import gbi.utils.utils as gbi_utils
+from gbi.ABC import ABC
 
 # Task imports.
 from gbi.benchmark.tasks.uniform_1d.task import UniformNoise1D
@@ -96,7 +97,7 @@ def train_GBI(theta, x, task, config, task_folder):
         max_n_epochs=config.max_epochs,
         print_every_n=config.print_every_n,
         plot_losses=False,
-    )    
+    )
     return inference, distance_net
 
 
@@ -132,6 +133,8 @@ def run_training(cfg: DictConfig) -> None:
         inference, _ = train_NPE(theta, x, task, cfg.algorithm)        
     elif cfg.algorithm.name == "NLE":
         inference, _ = train_NLE(theta, x, task, cfg.algorithm)
+    elif cfg.algorithm.name == "ABC":
+        inference = ABC().append_simulations(theta, x).set_dist_fn(distance_func)
     else:
         raise NameError
     
