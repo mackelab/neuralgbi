@@ -258,9 +258,9 @@ class GBInferenceEmulator:
         # Build and return function.
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
-            x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+            with torch.no_grad():
+                x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)            
             
-            # with torch.no_grad():??
             dist_pred = self.distance_func(x_emulator, x_o)
             assert dist_pred.shape == (theta.shape[0],)
             return dist_pred

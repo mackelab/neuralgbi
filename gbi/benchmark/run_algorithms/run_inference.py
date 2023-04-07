@@ -8,7 +8,7 @@ import time
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import get_original_cwd, to_absolute_path
-from sbi.inference import MCMCPosterior
+from sbi.inference import MCMCPosterior, likelihood_estimator_based_potential
 from sbi.utils import mcmc_transform
 from gbi.GBI import GBInferenceEmulator
 
@@ -49,7 +49,6 @@ def sample_eGBI(nle_inference, distance_function, x_o, beta, task, n_samples=10_
         num_chains=100,
         init_strategy="resample",
     )
-    # TODO: Not sure how to fix seed for each chain individually
     posterior_samples = posterior.sample((n_samples,))
     return posterior_samples
 
@@ -58,10 +57,10 @@ def sample_NPE(inference, x_o, task, n_samples=10_000):
     return inference.build_posterior(prior=task.prior).set_default_x(x_o).sample((n_samples,))
 
 
-def sample_NLE(inference, x_o, task, n_samples=10_000):
-    # DEFINE REJECTION SAMPLER OR MCMC DEPENDING ON PROBLEM?
-    # THIS IS CURRENTLY SLOW AF FOR UNIFORM_1D
-    return inference.build_posterior(prior=task.prior).set_default_x(x_o).sample((n_samples,))
+def sample_NLE(inference, x_o, task, n_samples=10_000):    
+    return inference.build_posterior(prior=task.prior, 
+                                     mcmc_method="slice_np_vectorized", 
+                                     mcmc_parameters={"num_chains": 100}).set_default_x(x_o).sample((n_samples,))
 
 def sample_ABC():
     # ABC
