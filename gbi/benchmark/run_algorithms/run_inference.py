@@ -1,20 +1,13 @@
-import pickle
-import os
 import torch
-from torch import Tensor
 import numpy as np
 import time
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
-from hydra.utils import get_original_cwd, to_absolute_path
-from sbi.inference import MCMCPosterior, likelihood_estimator_based_potential
+from omegaconf import DictConfig
+from hydra.utils import get_original_cwd
+from sbi.inference import MCMCPosterior
 from sbi.utils import mcmc_transform
 from gbi.GBI import GBInferenceEmulator
-
-# Algorithm imports.
-from sbi.inference import SNPE, SNLE
-from gbi.GBI import GBInference
 import gbi.utils.utils as gbi_utils
 from run_training import get_task_and_distance_func
 import logging
@@ -37,10 +30,12 @@ def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
     posterior_samples = posterior.sample((n_samples,))
     return posterior_samples
 
-def sample_eGBI(nle_inference, distance_function, x_o, beta, task, n_samples=10_000, n_emulator_samples=10):
-    eGBI = GBInferenceEmulator(emulator_net=nle_inference._neural_net, prior=task.prior, distance_func=distance_function, n_emulator_samples=10)
-    potential_fn = eGBI.get_potential(x_o, beta)
-    theta_transform = mcmc_transform(task.prior)
+def sample_eGBI(inference, distance_function, x_o, beta, task, n_samples=10_000, n_emulator_samples=10):
+    # eGBI = GBInferenceEmulator(emulator_net=inference._neural_net, prior=task.prior, distance_func=distance_function, n_emulator_samples=n_emulator_samples)
+    # potential_fn = eGBI.get_potential(x_o, beta)
+
+    potential_fn = inference.get_potential(x_o, beta)
+    theta_transform = mcmc_transform(task.prior)    
     posterior = MCMCPosterior(
         potential_fn,
         theta_transform=theta_transform,
@@ -80,6 +75,7 @@ def run_inference(cfg: DictConfig) -> None:
     # Get directory of, and load trained inference algorithm.
     inference_dir = f'../../../../'
     inference = gbi_utils.pickle_load(inference_dir + 'inference.pickle')    
+    
 
     # Get high-level task path.
     dir_path = get_original_cwd()
@@ -99,17 +95,15 @@ def run_inference(cfg: DictConfig) -> None:
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
 
-    # Get task and distance function, only need for prior.
-    Task, _ = get_task_and_distance_func(cfg)    
+    # Get task and distance function.
+    Task, distance_function = get_task_and_distance_func(cfg)    
     task = Task(seed=seed)
 
-
-    ### TO DO: INCLUDE NLE, NLE-distance, ABC algorithms here.
     ### Sample from inference algorithm and save
     if cfg.algorithm.name == 'NPE':
         posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task)
-    elif cfg.algorithm.name == 'NLE':
-        # THIS IS VERY SLOW
+    
+    elif cfg.algorithm.name == 'NLE':        
         posterior_samples = sample_NLE(inference, xos[cfg.task.xo_index], task)
 
     elif cfg.algorithm.name == 'ABC': 
@@ -118,11 +112,9 @@ def run_inference(cfg: DictConfig) -> None:
     elif cfg.algorithm.name == 'GBI':
         posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task)
 
-    elif cfg.algorithm.name == 'eGBI':
-        print("eGBI")
-        raise NotImplementedError
+    elif cfg.algorithm.name == 'eGBI':        
+        posterior_samples = sample_eGBI(inference, distance_function, xos[cfg.task.xo_index], cfg.task.beta, task)
     
-
     gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
     
 if __name__ == "__main__":
@@ -146,7 +138,7 @@ pseudo code:
     > sampling [n_samples]
     - for each x_o
         - for each beta:
-            - sample {GBI, NLE}
+            - sample {GBI, emulatorGBI}
         - sample {NPE, ABC}
         - simulate
         - save test sims ??

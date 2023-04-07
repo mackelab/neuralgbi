@@ -2,7 +2,7 @@ name: 'GBI'
 net_type: 'resnet'
 training_batch_size: 1000
 num_layers: 3
-num_hidden: 50    
+num_hidden: 50
 noise_level: 2.0
 n_augmented_x: 100
 max_epochs: 5000

@@ -3,15 +3,15 @@ import numpy as np
 import time
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
-from hydra.utils import get_original_cwd, to_absolute_path
+from omegaconf import DictConfig
+from hydra.utils import get_original_cwd
 
 import logging
 from sbi.utils import get_nn_models
 
 # Algorithm imports.
 from sbi.inference import SNPE, SNLE
-from gbi.GBI import GBInference
+from gbi.GBI import GBInference, GBInferenceEmulator
 import gbi.utils.utils as gbi_utils
 from gbi.ABC import ABC
 
@@ -64,6 +64,11 @@ def train_NLE(theta, x, task, config):
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator
 
+def train_eGBI(theta, x, task, distance_func, config):
+    inference = SNLE(prior=task.prior, density_estimator=config.density_estimator)
+    density_estimator = inference.append_simulations(theta, x).train()
+    eGBI = GBInferenceEmulator(emulator_net=density_estimator, prior=task.prior, distance_func=distance_func, n_emulator_samples=config.n_emulator_samples)
+    return eGBI, density_estimator
 
 def train_GBI(theta, x, task, config, task_folder):    
     # Augment data with noise.
@@ -123,18 +128,25 @@ def run_training(cfg: DictConfig) -> None:
 
     print("----------------------")
     print(f"Training: {cfg.algorithm.name}...")
-    if cfg.algorithm.name == "GBI":        
+    if cfg.algorithm.name == "GBI":      
         # Get high-level path.
         dir_path = get_original_cwd()    
         task_folder = f"{dir_path}/../tasks/{cfg.task.name}/"        
         task.dist_func_gbi = distance_func
         inference, _ = train_GBI(theta, x, task, cfg.algorithm, task_folder)
-    elif cfg.algorithm.name == "NPE":        
+    
+    elif cfg.algorithm.name == "NPE":
         inference, _ = train_NPE(theta, x, task, cfg.algorithm)        
+    
     elif cfg.algorithm.name == "NLE":
         inference, _ = train_NLE(theta, x, task, cfg.algorithm)
+
+    elif cfg.algorithm.name == "eGBI":
+        inference, _ = train_eGBI(theta, x, task, distance_func, cfg.algorithm)
+    
     elif cfg.algorithm.name == "ABC":
         inference = ABC().append_simulations(theta, x).set_dist_fn(distance_func)
+    
     else:
         raise NameError
     
