@@ -1,5 +1,8 @@
 ### Module for distance functions (sample-based), to be used during training
 from torch import Tensor
+import torch
+
+from gbi.utils.mmd import sample_based_mmd
 
 ## MSE
 def mse_dist(xs: Tensor, x_o: Tensor) -> Tensor:
@@ -17,7 +20,13 @@ def mae_dist(xs: Tensor, x_o: Tensor) -> Tensor:
 
 ## MMD
 def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
-    return
+    assert len(xs.shape) == 4
+    assert len(x_o.shape) > 1
+    assert xs.shape[2] > 1
+    assert x_o.shape[0] > 1
+
+    mmds = torch.stack([sample_based_mmd(x[0], x_o) for x in xs])
+    return mmds
 
 
 ## OTHER STUFF

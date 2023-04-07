@@ -17,7 +17,9 @@ from sbi.inference import SNPE, SNLE
 from gbi.GBI import GBInference
 import gbi.utils.utils as gbi_utils
 from run_training import get_task_and_distance_func
+import logging
 
+log = logging.getLogger("inference")
 
 def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
     potential_fn = inference.get_potential(x_o=x_o, beta=beta)
@@ -62,8 +64,14 @@ def sample_NLE(inference, x_o, task, n_samples=10_000):
                                      mcmc_method="slice_np_vectorized", 
                                      mcmc_parameters={"num_chains": 100}).set_default_x(x_o).sample((n_samples,))
 
-def sample_ABC():
-    # ABC
+def sample_ABC(inference, x_o, beta):
+    inference = inference.set_default_x(x_o)
+    num_accepted = 0
+    while num_accepted < 50:
+        posterior_samples = inference.sample(beta)
+        num_accepted = len(posterior_samples)
+        log.info(f"beta: {beta}, num_accepted: {num_accepted}")
+        beta /= 1.1  # Reduce beta in order to make the posterior artificially broader.
     return
 
 
@@ -105,8 +113,7 @@ def run_inference(cfg: DictConfig) -> None:
         posterior_samples = sample_NLE(inference, xos[cfg.task.xo_index], task)
 
     elif cfg.algorithm.name == 'ABC': 
-        print("ABC")
-        raise NotImplementedError
+        posterior_samples = sample_ABC(inference, xos[cfg.task.xo_index], cfg.task.beta)
 
     elif cfg.algorithm.name == 'GBI':
         posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task)

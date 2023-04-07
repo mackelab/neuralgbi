@@ -10,11 +10,17 @@ class ABC:
     def append_simulations(self, theta, x):
         self.theta = theta
         self.x = x
+        return self
 
     def set_default_x(self, x_o):
         self.x_o = x_o
+        return self
+    
+    def set_dist_fn(self, dist_fn):
+        self.dist_fn = dist_fn
+        return self
 
-    def sample(self, distance_func: Callable, beta: float, x: Optional[Tensor] = None):
+    def sample(self, beta: float, x: Optional[Tensor] = None):
         """Returns ABC samples. These are exact but their number is fixed.
 
         Args:
@@ -29,7 +35,7 @@ class ABC:
         else:
             obs = x
 
-        distances = distance_func(self.x, obs)
+        distances = self.dist_fn(self.x.unsqueeze(1), obs)
         acceptance_probs = exp(-beta * distances)
         rands = rand(acceptance_probs.shape)
         accepted_sample = (rands < acceptance_probs).bool()
