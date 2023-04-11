@@ -31,9 +31,6 @@ def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
     return posterior_samples
 
 def sample_eGBI(inference, distance_function, x_o, beta, task, n_samples=10_000, n_emulator_samples=10):
-    # eGBI = GBInferenceEmulator(emulator_net=inference._neural_net, prior=task.prior, distance_func=distance_function, n_emulator_samples=n_emulator_samples)
-    # potential_fn = eGBI.get_potential(x_o, beta)
-
     potential_fn = inference.get_potential(x_o, beta)
     theta_transform = mcmc_transform(task.prior)    
     posterior = MCMCPosterior(

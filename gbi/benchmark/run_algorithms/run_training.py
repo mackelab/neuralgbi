@@ -58,7 +58,6 @@ def train_NPE(theta, x, task, config):
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator
 
-
 def train_NLE(theta, x, task, config):    
     inference = SNLE(prior=task.prior, density_estimator=config.density_estimator)
     density_estimator = inference.append_simulations(theta, x).train()
