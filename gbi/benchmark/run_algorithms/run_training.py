@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 import numpy as np
 import time
 
@@ -8,6 +9,7 @@ from hydra.utils import get_original_cwd
 
 import logging
 from sbi.utils import get_nn_models
+from sbi.neural_nets.embedding_nets import PermutationInvariantEmbedding, FCEmbedding
 
 # Algorithm imports.
 from sbi.inference import SNPE, SNLE
@@ -34,7 +36,7 @@ def get_task_and_distance_func(cfg):
     elif cfg.task.name == "uniform_1d":
         Task = UniformNoise1D
     elif cfg.task.name == "gaussian_mixture":
-        Task = GaussianMixture        
+        Task = GaussianMixture
     else:
         raise NameError
 
@@ -46,30 +48,51 @@ def get_task_and_distance_func(cfg):
 
     return Task, distance_func
 
-def train_NPE(theta, x, task, config):        
+
+def train_NPE(theta, x, task, config, task_name):
     if config.sigmoid_theta:
         # Apply sigmoid on theta to keep into prior range.
-        net = get_nn_models.posterior_nn(model=config.density_estimator, sigmoid_theta=True, prior=task.prior)
+        if task_name == "gaussian_mixture":
+            trial_net = FCEmbedding(input_dim=2, output_dim=20)
+            embedding_net = PermutationInvariantEmbedding(
+                trial_net=trial_net, trial_net_output_dim=20
+            )
+        else:
+            embedding_net = nn.Identity()
+        net = get_nn_models.posterior_nn(
+            model=config.density_estimator,
+            sigmoid_theta=True,
+            prior=task.prior,
+            embedding_net=embedding_net,
+        )
         inference = SNPE(prior=task.prior, density_estimator=net)
     else:
         # Regular NPE
-        inference = SNPE(prior=task.prior, density_estimator=config.density_estimator)    
-    
+        inference = SNPE(prior=task.prior, density_estimator=config.density_estimator)
+
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator
 
-def train_NLE(theta, x, task, config):    
+
+def train_NLE(theta, x, task, config):
     inference = SNLE(prior=task.prior, density_estimator=config.density_estimator)
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator
+
 
 def train_eGBI(theta, x, task, distance_func, config):
     inference = SNLE(prior=task.prior, density_estimator=config.density_estimator)
     density_estimator = inference.append_simulations(theta, x).train()
-    eGBI = GBInferenceEmulator(emulator_net=density_estimator, prior=task.prior, distance_func=distance_func, n_emulator_samples=config.n_emulator_samples)
+    eGBI = GBInferenceEmulator(
+        emulator_net=density_estimator,
+        prior=task.prior,
+        distance_func=distance_func,
+        n_emulator_samples=config.n_emulator_samples,
+    )
     return eGBI, density_estimator
 
-def train_GBI(theta, x, task, config, task_folder):    
+
+def train_GBI(theta, x, task, config, task_folder):
     # Augment data with noise.
     x_aug = x[torch.randint(x.shape[0], size=(config.n_augmented_x,))]
     x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * config.noise_level
@@ -127,31 +150,32 @@ def run_training(cfg: DictConfig) -> None:
 
     print("----------------------")
     print(f"Training: {cfg.algorithm.name}...")
-    if cfg.algorithm.name == "GBI":      
+    if cfg.algorithm.name == "GBI":
         # Get high-level path.
-        dir_path = get_original_cwd()    
-        task_folder = f"{dir_path}/../tasks/{cfg.task.name}/"        
+        dir_path = get_original_cwd()
+        task_folder = f"{dir_path}/../tasks/{cfg.task.name}/"
         task.dist_func_gbi = distance_func
         inference, _ = train_GBI(theta, x, task, cfg.algorithm, task_folder)
-    
+
     elif cfg.algorithm.name == "NPE":
-        inference, _ = train_NPE(theta, x, task, cfg.algorithm)        
-    
+        inference, _ = train_NPE(theta, x, task, cfg.algorithm, cfg.task.name)
+
     elif cfg.algorithm.name == "NLE":
         inference, _ = train_NLE(theta, x, task, cfg.algorithm)
 
     elif cfg.algorithm.name == "eGBI":
         inference, _ = train_eGBI(theta, x, task, distance_func, cfg.algorithm)
-    
+
     elif cfg.algorithm.name == "ABC":
         inference = ABC().append_simulations(theta, x).set_dist_fn(distance_func)
-    
+
     else:
         raise NameError
-    
+
     # Save inference object
     gbi_utils.pickle_dump("inference.pickle", inference)
     return
+
 
 if __name__ == "__main__":
     run_training()
