@@ -74,7 +74,13 @@ def train_NPE(theta, x, task, config, task_name):
     return inference, density_estimator
 
 
-def train_NLE(theta, x, task, config):
+def train_NLE(theta, x, task, config, task_name):
+    if task_name == "gaussian_mixture":
+        # NLE is trained on single-trial simulations. So we reshaped the multi-trial
+        # simulator output into single-trial simulations.
+        batch_size, trial_num, data_size = x.shape
+        x = torch.reshape(x, (batch_size * trial_num, data_size))
+        theta = torch.repeat_interleave(theta, trial_num, dim=0)
     inference = SNLE(prior=task.prior, density_estimator=config.density_estimator)
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator
@@ -161,7 +167,7 @@ def run_training(cfg: DictConfig) -> None:
         inference, _ = train_NPE(theta, x, task, cfg.algorithm, cfg.task.name)
 
     elif cfg.algorithm.name == "NLE":
-        inference, _ = train_NLE(theta, x, task, cfg.algorithm)
+        inference, _ = train_NLE(theta, x, task, cfg.algorithm, cfg.task.name)
 
     elif cfg.algorithm.name == "eGBI":
         inference, _ = train_eGBI(theta, x, task, distance_func, cfg.algorithm)
