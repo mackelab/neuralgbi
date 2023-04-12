@@ -9,9 +9,9 @@ from torch.distributions import Distribution
 
 from sbi.utils.torchutils import atleast_2d
 from sbi.inference.potentials.base_potential import BasePotential
+from sbi.neural_nets.embedding_nets import PermutationInvariantEmbedding, FCEmbedding
 
 from pyknos.nflows.nn import nets
-
 
 
 class GBInference:
@@ -43,7 +43,7 @@ class GBInference:
         num_layers: int,
         num_hidden: int,
         net_type: str = "resnet",
-        positive_constraint_fn: str = None, 
+        positive_constraint_fn: str = None,
         net_kwargs: Optional[Dict] = {},
     ):
         """Initialize neural network for distance regression."""
@@ -67,7 +67,6 @@ class GBInference:
         print_every_n: int = 20,
         plot_losses: bool = True,
     ) -> nn.Module:
-
         # Can use custom distance net, otherwise take existing in class.
         if distance_net == None:
             distance_net = self.distance_net
@@ -92,10 +91,12 @@ class GBInference:
         theta_val, x_val, dist_val = self._idx_to_data(val_set[:])
 
         # Training loop.
-        train_losses, val_losses = [], []        
+        train_losses, val_losses = [], []
         epoch = 0
         self._val_loss = torch.inf
-        while epoch <= max_n_epochs and not self._check_convergence(epoch, stop_after_counter_reaches):
+        while epoch <= max_n_epochs and not self._check_convergence(
+            epoch, stop_after_counter_reaches
+        ):
             for i_b, idx_batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
@@ -121,8 +122,8 @@ class GBInference:
             if epoch % print_every_n == 0:
                 print(f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}")
 
-            epoch+=1
-            
+            epoch += 1
+
         print(f"Network converged after {epoch-1} of {max_n_epochs} epochs.")
 
         # Plot loss curves for convenience.
@@ -146,7 +147,7 @@ class GBInference:
 
     def _check_convergence(self, counter: int, stop_after_counter_reaches: int) -> bool:
         """Return whether the training converged yet and save best model state so far.
-        Checks for improvement in validation performance over previous batches or epochs.        
+        Checks for improvement in validation performance over previous batches or epochs.
         """
         converged = False
 
@@ -164,15 +165,15 @@ class GBInference:
         # If no validation improvement over many epochs, stop training.
         if self._counts_since_last_improvement > stop_after_counter_reaches - 1:
             distance_net.load_state_dict(self._best_model_state_dict)
-            converged = True            
+            converged = True
 
         return converged
-
 
     def build_amortized_GLL(self, distance_net: nn.Module = None):
         """Build generalized likelihood function from distance predictor."""
         if distance_net == None:
             distance_net = self.distance_net
+
         # Build and return function.
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
@@ -241,36 +242,36 @@ class GBInference:
 
 class GBInferenceEmulator:
     def __init__(
-            self,
-            emulator_net,
-            prior: Distribution,
-            distance_func: Callable,            
-            n_emulator_samples: int = 10,            
-        ):
+        self,
+        emulator_net,
+        prior: Distribution,
+        distance_func: Callable,
+        n_emulator_samples: int = 10,
+    ):
         self.distance_func = distance_func
-        self.prior = prior        
+        self.prior = prior
         self.emulator_net = emulator_net
         self.n_emulator_samples = n_emulator_samples
 
-
     def build_amortized_GLL(self):
         """Build generalized likelihood function from emulator."""
+
         # Build and return function.
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
             with torch.no_grad():
-                x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)            
-            
+                x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+
             dist_pred = self.distance_func(x_emulator, x_o)
             assert dist_pred.shape == (theta.shape[0],)
             return dist_pred
 
         return generalized_loglikelihood
-    
+
     def get_potential(self, x_o: Tensor = None, beta: float = 1.0):
         """Make the potential function. Pass through call to GBIPotenial object."""
         return GBIPotential(self.prior, self.build_amortized_GLL(), x_o, beta)
-    
+
     def build_posterior(
         self, posterior_func: Callable, x_o: Tensor = None, beta: float = 1.0
     ):
@@ -278,7 +279,7 @@ class GBInferenceEmulator:
         potential_func = self.get_potential(x_o, beta)
         posterior = posterior_func(potential_func, self.prior)
         return posterior
-    
+
 
 class DistanceEstimator(nn.Module):
     def __init__(
@@ -293,10 +294,26 @@ class DistanceEstimator(nn.Module):
         use_batch_norm=False,
         activation="relu",
         activate_output=False,
+        trial_net_input_dim=None,
+        trial_net_output_dim=None,
     ):
         ## TO DO: probably should put all those kwargs in kwargs
         super().__init__()
-        input_dim = theta_dim + x_dim
+        if trial_net_input_dim is not None and trial_net_input_dim is not None:
+            output_dim_e_net = 20
+            trial_net = FCEmbedding(
+                input_dim=trial_net_input_dim, output_dim=trial_net_output_dim
+            )
+            self.embedding_net_x = PermutationInvariantEmbedding(
+                trial_net=trial_net,
+                trial_net_output_dim=trial_net_output_dim,
+                output_dim=output_dim_e_net,
+            )
+            input_dim = theta_dim + output_dim_e_net
+        else:
+            self.embedding_net_x = nn.Identity()
+            input_dim = theta_dim + x_dim
+
         output_dim = 1
         if net_type == "MLP":
             net = nets.MLP(
@@ -319,26 +336,27 @@ class DistanceEstimator(nn.Module):
             raise NotImplementedError
 
         # ### TO DO: add activation at the end to force positive distance
-        if positive_constraint_fn==None:
+        if positive_constraint_fn == None:
             self.positive_constraint_fn = lambda x: x
-        elif positive_constraint_fn=='relu':
+        elif positive_constraint_fn == "relu":
             self.positive_constraint_fn = nn.functional.relu
-        elif positive_constraint_fn=='exponential':
+        elif positive_constraint_fn == "exponential":
             self.positive_constraint_fn = torch.exp
-        elif positive_constraint_fn=='softplus':            
-            self.positive_constraint_fn = nn.functional.softplus            
+        elif positive_constraint_fn == "softplus":
+            self.positive_constraint_fn = nn.functional.softplus
         else:
             raise NotImplementedError
 
         self.net = net
-            
 
     def forward(self, theta, x):
         """
         Predicts distance between theta and x.
-        """        
-        return self.positive_constraint_fn(self.net(torch.concat((theta, x), dim=-1)))
-
+        """
+        x_embedded = self.embedding_net_x(x)
+        return self.positive_constraint_fn(
+            self.net(torch.concat((theta, x_embedded), dim=-1))
+        )
 
 
 class GBIPotential(BasePotential):

@@ -98,7 +98,7 @@ def train_eGBI(theta, x, task, distance_func, config):
     return eGBI, density_estimator
 
 
-def train_GBI(theta, x, task, config, task_folder):
+def train_GBI(theta, x, task, config, task_folder, task_name):
     # Augment data with noise.
     x_aug = x[torch.randint(x.shape[0], size=(config.n_augmented_x,))]
     x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * config.noise_level
@@ -117,6 +117,10 @@ def train_GBI(theta, x, task, config, task_folder):
     x_target = gbi_utils.concatenate_xs(x_target, x_obs)
 
     # Initialize and train.
+    if task_name == "gaussian_mixture":
+        net_kwargs = {"trial_net_input_dim": 2, "trial_net_output_dim": 20}
+    else:
+        net_kwargs = {"trial_net_input_dim": None, "trial_net_output_dim": None}
     inference = GBInference(prior=task.prior, distance_func=task.dist_func_gbi)
     inference = inference.append_simulations(theta, x, x_target)
     inference.initialize_distance_estimator(
@@ -124,6 +128,7 @@ def train_GBI(theta, x, task, config, task_folder):
         num_hidden=config.num_hidden,
         net_type=config.net_type,
         positive_constraint_fn=config.positive_constraint_fn,
+        net_kwargs=net_kwargs,
     )
     distance_net = inference.train(
         training_batch_size=config.training_batch_size,
@@ -161,7 +166,9 @@ def run_training(cfg: DictConfig) -> None:
         dir_path = get_original_cwd()
         task_folder = f"{dir_path}/../tasks/{cfg.task.name}/"
         task.dist_func_gbi = distance_func
-        inference, _ = train_GBI(theta, x, task, cfg.algorithm, task_folder)
+        inference, _ = train_GBI(
+            theta, x, task, cfg.algorithm, task_folder, cfg.task.name
+        )
 
     elif cfg.algorithm.name == "NPE":
         inference, _ = train_NPE(theta, x, task, cfg.algorithm, cfg.task.name)
