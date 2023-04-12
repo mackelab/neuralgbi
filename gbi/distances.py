@@ -4,6 +4,7 @@ import torch
 
 from gbi.utils.mmd import sample_based_mmd
 
+
 ## MSE
 def mse_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     # Shape of xs should be [num_thetas, num_xs, num_x_dims].
