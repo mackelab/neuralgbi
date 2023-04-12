@@ -197,12 +197,12 @@ class GBInference:
 
     def _precompute_distance(self):
         """Pre-compute the distances of all pairs of x and x_target."""
-        self.distance_precomputed = torch.hstack(
-            [
+        self.distance_precomputed = []
+        for x_t in self.x_target:
+            self.distance_precomputed.append(
                 self.distance_func(self.x.unsqueeze(1), x_t).unsqueeze(1)
-                for x_t in self.x_target
-            ]
-        )
+            )
+        self.distance_precomputed = torch.hstack(self.distance_precomputed)
 
     def _compute_index_pairs(self):
         """Return the list of all index pairs for (theta_i, x_target_j)."""
