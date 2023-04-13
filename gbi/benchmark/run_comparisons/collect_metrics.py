@@ -49,14 +49,14 @@ def collect_metrics(cfg: DictConfig) -> None:
                 beta = float(beta_str.split('_')[-1])
                 task = task_classes[task_name](beta=beta, x_o=xo)            
 
-                # compute predictives and summary
+                # compute predictives and summary                
                 predictives = gbi_utils.compute_predictives(samples, task, distance_func, gbi_inference)
                 summary = gbi_utils.compute_moments(predictives)
-                df_summary = pd.DataFrame(summary, dtype=float)
-
+                # df_summary = pd.DataFrame(summary, dtype=float)
+                df_summary = pd.DataFrame([summary.values()], columns=summary.keys())
                 # compute C2ST against GT GBI posterior if it's a GBI algorithm
-                df_summary['c2st'] = torch.nan
-                if 'GBI' in alg:
+                df_summary['c2st'] = torch.nan  
+                if alg in ["GBI", "eGBI", "ABC"]:                                        
                     df_summary['c2st'] = C2ST(samples, posterior_samples['GT'][beta_str])
 
                 df_info = pd.DataFrame([[task_name, *xo_info, alg, beta]], columns=['task', 'xo_idx', 'xo_specified', 'xo_known', 'algorithm', 'beta'])

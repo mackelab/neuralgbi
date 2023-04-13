@@ -41,7 +41,7 @@ def collect_samples(cfg: DictConfig) -> None:
 
     # Loop through to collect.
     posterior_samples_collected = []
-    for xo_info in xo_info_combs:
+    for ix_, xo_info in enumerate(xo_info_combs):
         # load xos and gt theta        
         xos = gbi_utils.pickle_load(f"{xo_path}/xo_{xo_info[1]}_{xo_info[2]}.pkl")
         if xo_info[1]=='specified':
@@ -63,31 +63,41 @@ def collect_samples(cfg: DictConfig) -> None:
             
         # load inference samples
         for algo in algos:
-            posterior_dir = f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/posterior_inference/"    
+            posterior_dir = f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/posterior_inference/"
             # Load inference algorithm
             if algo == "GBI":
                 gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/inference.pickle")
                 
-            if path.isdir(posterior_dir):
+            if path.isdir(posterior_dir):                
                 # Take the latest run
                 posterior_datetime = np.sort(listdir(posterior_dir))[-1]
                 posterior_samples[algo] = {}
 
                 for beta in betas:
-                    ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"                    
+                    if algo in ["NPE", "NLE"]:
+                        # NPE and NLE will always have the same beta=1
+                        beta=1
+                    elif algo in ["GBI", "eGBI", "ABC"]:
+                        # GBI, eGBI, or ABC: collect all betas
+                        pass
+                        
+                    ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"
                     if path.exists(ps_path):
-                        # posterior sample exists, load                        
-                        if algo == "GBI":
-                            posterior_samples[algo][f"beta_{beta}"] = gbi_utils.pickle_load(ps_path)
-                        else:
-                            posterior_samples[algo]["beta_1"] = gbi_utils.pickle_load(ps_path)
+                        posterior_samples[algo][f"beta_{beta}"] = gbi_utils.pickle_load(ps_path)
+                    else:
+                        print(f"---Posterior samples for {algo}, beta={beta}, {xo_info} not found.")
 
+            else:
+                print(f"Posterior samples for {algo} not found.")
+                        
         posterior_samples_collected.append([xo_info, {"xo": xo, "theta_gt": theta_gt,}, posterior_samples])
         
     # Save collected samples
     save_path = f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
     gbi_utils.pickle_dump(save_path, posterior_samples_collected)
-    print(f"All posterior samples saved as: {save_path}")
+    print("---Collected posterior samples:---")
+    [print(alg, list(v.keys())) for alg, v in posterior_samples_collected[0][2].items()];
+    print(f"All posterior samples saved as: {save_path}")    
     return
 
 if __name__ == "__main__":
