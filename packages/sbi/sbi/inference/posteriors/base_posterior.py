@@ -124,9 +124,7 @@ class NeuralPosterior(ABC):
         Returns:
             `NeuralPosterior` that will use a default `x` when not explicitly passed.
         """
-        self._x = process_x(
-            x, x_shape=self._x_shape, allow_iid_x=self.potential_fn.allow_iid_x
-        ).to(self._device)
+        self._x = process_x(x, x_shape=self._x_shape, allow_iid_x=True).to(self._device)
         self._map = None
         return self
 
@@ -134,9 +132,7 @@ class NeuralPosterior(ABC):
         if x is not None:
             # New x, reset posterior sampler.
             self._posterior_sampler = None
-            return process_x(
-                x, x_shape=self._x_shape, allow_iid_x=self.potential_fn.allow_iid_x
-            )
+            return process_x(x, x_shape=self._x_shape, allow_iid_x=True)
         elif self.default_x is None:
             raise ValueError(
                 "Context `x` needed when a default has not been set."
@@ -229,7 +225,6 @@ class NeuralPosterior(ABC):
         return desc
 
     def __str__(self):
-
         desc = (
             f"Posterior conditional density p(θ|x) of type {self.__class__.__name__}. "
             f"{self._purpose}"
