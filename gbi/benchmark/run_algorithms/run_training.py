@@ -50,25 +50,30 @@ def get_task_and_distance_func(cfg):
 
 
 def train_NPE(theta, x, task, config, task_name):
+    if task_name == "gaussian_mixture":
+        trial_net = FCEmbedding(input_dim=2, output_dim=20)
+        embedding_net = PermutationInvariantEmbedding(
+            trial_net=trial_net, trial_net_output_dim=20
+        )
+    else:
+        embedding_net = nn.Identity()
+
     if config.sigmoid_theta:
         # Apply sigmoid on theta to keep into prior range.
-        if task_name == "gaussian_mixture":
-            trial_net = FCEmbedding(input_dim=2, output_dim=20)
-            embedding_net = PermutationInvariantEmbedding(
-                trial_net=trial_net, trial_net_output_dim=20
-            )
-        else:
-            embedding_net = nn.Identity()
         net = get_nn_models.posterior_nn(
             model=config.density_estimator,
             sigmoid_theta=True,
             prior=task.prior,
             embedding_net=embedding_net,
         )
-        inference = SNPE(prior=task.prior, density_estimator=net)
     else:
         # Regular NPE
-        inference = SNPE(prior=task.prior, density_estimator=config.density_estimator)
+        net = get_nn_models.posterior_nn(
+            model=config.density_estimator,
+            sigmoid_theta=False,
+            embedding_net=embedding_net,
+        )
+    inference = SNPE(prior=task.prior, density_estimator=net)
 
     density_estimator = inference.append_simulations(theta, x).train()
     return inference, density_estimator

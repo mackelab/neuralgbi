@@ -299,7 +299,7 @@ class DistanceEstimator(nn.Module):
     ):
         ## TO DO: probably should put all those kwargs in kwargs
         super().__init__()
-        if trial_net_input_dim is not None and trial_net_input_dim is not None:
+        if trial_net_input_dim is not None and trial_net_output_dim is not None:
             output_dim_e_net = 20
             trial_net = FCEmbedding(
                 input_dim=trial_net_input_dim, output_dim=trial_net_output_dim
