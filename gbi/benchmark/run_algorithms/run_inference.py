@@ -15,7 +15,8 @@ import logging
 log = logging.getLogger("inference")
 
 def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
-    potential_fn = inference.get_potential(x_o=x_o, beta=beta)
+    # HAVE TO SET ALLOW_IID_X IN GBIPOTENTIAL
+    potential_fn = inference.get_potential(x_o=x_o, beta=beta)    
     theta_transform = mcmc_transform(task.prior)
     posterior = MCMCPosterior(
             potential_fn,
@@ -52,7 +53,7 @@ def sample_NPE(inference, x_o, task, n_samples=10_000):
 
 
 def sample_NLE(inference, x_o, task, n_samples=10_000):    
-    return inference.build_posterior(prior=task.prior, 
+    return inference.build_posterior(prior=task.prior,
                                      mcmc_method="slice_np_vectorized", 
                                      mcmc_parameters={"num_chains": 100}).set_default_x(x_o).sample((n_samples,))
 
@@ -98,20 +99,27 @@ def run_inference(cfg: DictConfig) -> None:
 
     ### Sample from inference algorithm and save
     n_samples = cfg.n_samples
+    x_o = xos[cfg.task.xo_index]
+    
+    if cfg.task.name == 'gaussian_mixture':
+        # Manually pad batch dimension for gaussian mixture, otherwise fails input check.
+        # Note that this fixes it for NPE but breaks for NLE which was working without this lol.
+        x_o = x_o[None,:,:]
+
     if cfg.algorithm.name == 'NPE':
-        posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task, n_samples)
+        posterior_samples = sample_NPE(inference, x_o, task, n_samples)
     
     elif cfg.algorithm.name == 'NLE':        
-        posterior_samples = sample_NLE(inference, xos[cfg.task.xo_index], task, n_samples)
+        posterior_samples = sample_NLE(inference, x_o, task, n_samples)
 
     elif cfg.algorithm.name == 'ABC': 
-        posterior_samples = sample_ABC(inference, xos[cfg.task.xo_index], cfg.task.beta, cfg.algorithm.n_abc_samples)
+        posterior_samples = sample_ABC(inference, x_o, cfg.task.beta, cfg.algorithm.n_abc_samples)
 
     elif cfg.algorithm.name == 'GBI':
-        posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task, n_samples)
+        posterior_samples = sample_GBI(inference, x_o, cfg.task.beta, task, n_samples)
 
     elif cfg.algorithm.name == 'eGBI':
-        posterior_samples = sample_eGBI(inference, distance_function, xos[cfg.task.xo_index], cfg.task.beta, task, n_samples, cfg.algorithm.n_emulator_samples)
+        posterior_samples = sample_eGBI(inference, distance_function, x_o, cfg.task.beta, task, n_samples, cfg.algorithm.n_emulator_samples)
     
     gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
     

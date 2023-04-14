@@ -261,6 +261,7 @@ class GBInferenceEmulator:
             theta = atleast_2d(theta)
             with torch.no_grad():
                 x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+                print(x_emulator.shape) # this gives (10000,10,2)
 
             dist_pred = self.distance_func(x_emulator, x_o)
             assert dist_pred.shape == (theta.shape[0],)
@@ -365,6 +366,7 @@ class DistanceEstimator(nn.Module):
 
 
 class GBIPotential(BasePotential):
+    # NEED TO SET THIS TO TRUE FOR gaussian mixture
     allow_iid_x = False
 
     def __init__(self, prior, gen_llh_fn, x_o=None, beta=1.0):

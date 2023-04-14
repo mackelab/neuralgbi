@@ -1,5 +1,6 @@
-# exclude all results
+# exclude all results and logs
 results/**
+**/multirun/**
 
 # sbi stuff
 **/sbi-logs/**
