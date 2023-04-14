@@ -28,7 +28,7 @@ def compute_predictives(theta_samples, task, distance_fn_empirical, inference_ob
     
     # compute posterior predictive distances
     predictives['dist_gt'] = task.distance_fn(theta_samples) # true average distance
-    predictives['dist_sample'] = distance_fn_empirical(predictives['x_pred'][:,None,:], task.x_o[None,None,:]) # sample-based estimate
+    predictives['dist_samples'] = distance_fn_empirical(predictives['x_pred'][:,None,:], task.x_o[None,None,:]) # sample-based estimate
     if inference_obj:
         with torch.no_grad():
             predictives['dist_estimate'] = inference_obj.distance_net(theta_samples, task.x_o.repeat((theta_samples.shape[0], 1))).squeeze(1)
@@ -40,9 +40,13 @@ def compute_predictives(theta_samples, task, distance_fn_empirical, inference_ob
 def compute_moments(predictives):
     summaries = {}
     for k,v in predictives.items():
-        summaries[f"{k}_mean"], summaries[f"{k}_std"] = v.mean(0), v.std(0)
+        if 'dist' in k:        
+            summaries[f"{k}_mean"], summaries[f"{k}_std"] = v.mean(0).numpy(), v.std(0).numpy()
 
     # Compute correlation and error between true and estimated distances
-    summaries['r_gt_estimate'] = torch.corrcoef(torch.vstack((predictives['dist_gt'], predictives['dist_estimate'])))[0,1]
-    summaries['mse_gt_estimate'] = ((predictives['dist_gt']-predictives['dist_estimate'])**2).mean()
+    summaries['r_dist_gt_estimate'] = torch.corrcoef(torch.vstack((predictives['dist_gt'], predictives['dist_estimate'])))[0,1].numpy()
+    summaries['mse_dist_gt_estimate'] = ((predictives['dist_gt']-predictives['dist_estimate'])**2).mean().numpy()
+
+    summaries['r_dist_samples_estimate'] = torch.corrcoef(torch.vstack((predictives['dist_samples'], predictives['dist_estimate'])))[0,1].numpy()
+    summaries['mse_dist_samples_estimate'] = ((predictives['dist_samples']-predictives['dist_estimate'])**2).mean().numpy()
     return summaries

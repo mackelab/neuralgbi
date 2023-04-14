@@ -14,8 +14,7 @@ import logging
 
 log = logging.getLogger("inference")
 
-def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
-    # HAVE TO SET ALLOW_IID_X IN GBIPOTENTIAL
+def sample_GBI(inference, x_o, beta, task, n_samples=10_000):    
     potential_fn = inference.get_potential(x_o=x_o, beta=beta)    
     theta_transform = mcmc_transform(task.prior)
     posterior = MCMCPosterior(
@@ -99,14 +98,14 @@ def run_inference(cfg: DictConfig) -> None:
 
     ### Sample from inference algorithm and save
     n_samples = cfg.n_samples
-    x_o = xos[cfg.task.xo_index]
-    
-    if cfg.task.name == 'gaussian_mixture':
-        # Manually pad batch dimension for gaussian mixture, otherwise fails input check.
-        # Note that this fixes it for NPE but breaks for NLE which was working without this lol.
-        x_o = x_o[None,:,:]
+    x_o = xos[cfg.task.xo_index]    
 
-    if cfg.algorithm.name == 'NPE':
+    if cfg.task.name == 'gaussian_mixture' and cfg.algorithm.name in ['NPE', 'GBI']:
+            # Manually pad batch dimension for gaussian mixture, otherwise fails input check.
+            # But not sure why it doesn't for the other algorithms...
+            x_o = x_o[None,:,:]
+
+    if cfg.algorithm.name == 'NPE':        
         posterior_samples = sample_NPE(inference, x_o, task, n_samples)
     
     elif cfg.algorithm.name == 'NLE':        

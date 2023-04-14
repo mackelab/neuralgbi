@@ -40,32 +40,40 @@ def collect_metrics(cfg: DictConfig) -> None:
     gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle")
 
     df_collect = []
+    predictives_collect = []
     for i_x in tqdm(range(len(posterior_samples_collected))):
         xo_info, xo_theta, posterior_samples = posterior_samples_collected[i_x]
         xo, theta_gt = xo_theta['xo'], xo_theta['theta_gt']
-
+        predictives_cur_xo = {}
         for alg, samples_alg in posterior_samples.items():
+            predictives_cur_xo[alg] = {}
             for beta_str, samples in samples_alg.items():
                 beta = float(beta_str.split('_')[-1])
                 task = task_classes[task_name](beta=beta, x_o=xo)            
 
-                # compute predictives and summary                
+                # compute predictives and summary, collect
                 predictives = gbi_utils.compute_predictives(samples, task, distance_func, gbi_inference)
-                summary = gbi_utils.compute_moments(predictives)
-                # df_summary = pd.DataFrame(summary, dtype=float)
+                predictives_cur_xo[alg][beta_str] = predictives 
+
+                summary = gbi_utils.compute_moments(predictives)                
                 df_summary = pd.DataFrame([summary.values()], columns=summary.keys())
+                
                 # compute C2ST against GT GBI posterior if it's a GBI algorithm
-                df_summary['c2st'] = torch.nan  
+                df_summary['c2st'] = torch.nan
                 if alg in ["GBI", "eGBI", "ABC"]:                                        
-                    df_summary['c2st'] = C2ST(samples, posterior_samples['GT'][beta_str])
+                    df_summary['c2st'] = C2ST(samples, posterior_samples['GT'][beta_str]).numpy()
 
                 df_info = pd.DataFrame([[task_name, *xo_info, alg, beta]], columns=['task', 'xo_idx', 'xo_specified', 'xo_known', 'algorithm', 'beta'])
                 df_collect.append(pd.concat((df_info, df_summary), axis=1))    
+        
+        predictives_collect.append([xo_info, xo_theta, predictives_cur_xo])
+
 
     df_summaries = pd.concat(df_collect, ignore_index=True)
-    save_path = f'{inference_dir}/{task_name}/{inference_datetime}/comparison_summaries.csv'
-    print(f"Summary CSV saved as {save_path}")
-    df_summaries.to_csv(save_path)
+    save_path = f'{inference_dir}/{task_name}/{inference_datetime}'
+    print(f"Predictives and summary CSV saved in {save_path}")
+    df_summaries.to_csv(save_path + '/comparison_summaries.csv')
+    gbi_utils.pickle_dump(save_path + '/posterior_predictives_all.pkl', predictives_collect)
     return
 
 if __name__ == "__main__":

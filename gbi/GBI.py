@@ -140,7 +140,12 @@ class GBInference:
     def predict_distance(self, theta, x):
         # Convenience function that does fixes the shape of x.
         if theta.shape != x.shape:
-            x = x.repeat((theta.shape[0], 1))
+            if len(x.shape)==2:
+                x = x.repeat(theta.shape[0], 1)
+            elif len(x.shape)==3:
+                # Has multiple independent observations, i.e., gaussian mixture task.
+                x = x.repeat(theta.shape[0], 1, 1)
+                                        
         with torch.no_grad():
             dist = self.distance_net(theta, x).squeeze(1)
         return dist
@@ -175,9 +180,20 @@ class GBInference:
             distance_net = self.distance_net
 
         # Build and return function.
-        def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
-            theta = atleast_2d(theta)
-            dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1))).squeeze(1)
+        def generalized_loglikelihood(theta: Tensor, x_o: Tensor):            
+            theta = atleast_2d(theta)            
+            dist_pred = self.predict_distance(theta, x_o)
+            
+            ## reshaping of x is taken care of in predict_distance
+            # if len(x_o.shape)==2:
+            #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1))).squeeze(1)
+            # elif len(x_o.shape)==3:
+            #     # Has multiple independent observations, i.e., gaussian mixture task.
+            #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1, 1))).squeeze(1)
+            
+            ## general solution to this
+            # dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], *[1]*(len(x_o.shape)-1)))).squeeze(1)
+            
             assert dist_pred.shape == (theta.shape[0],)
             return dist_pred
 
@@ -255,16 +271,21 @@ class GBInferenceEmulator:
 
     def build_amortized_GLL(self):
         """Build generalized likelihood function from emulator."""
-
         # Build and return function.
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
+            n_iid = x_o.shape[0]
             with torch.no_grad():
-                x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
-                print(x_emulator.shape) # this gives (10000,10,2)
-
+                if n_iid==1:
+                    # Single observation, no iid dimension.                
+                    x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+                else:
+                    # Multiple iid observations, pad to iid dimension (2).
+                    # i.e., (n_theta, n_emulator_samples, iid, data)
+                    x_emulator = torch.concat([self.emulator_net.sample(self.n_emulator_samples, theta)[:,:,None,:] for _ in range(n_iid)],2)
+            
             dist_pred = self.distance_func(x_emulator, x_o)
-            assert dist_pred.shape == (theta.shape[0],)
+            assert dist_pred.shape == (theta.shape[0],)            
             return dist_pred
 
         return generalized_loglikelihood
@@ -366,8 +387,8 @@ class DistanceEstimator(nn.Module):
 
 
 class GBIPotential(BasePotential):
-    # NEED TO SET THIS TO TRUE FOR gaussian mixture
-    allow_iid_x = False
+    # Need to set this to True for gaussian mixture.
+    allow_iid_x = True
 
     def __init__(self, prior, gen_llh_fn, x_o=None, beta=1.0):
         super().__init__(prior, x_o)
@@ -382,3 +403,6 @@ class GBIPotential(BasePotential):
             return -self.beta * self.gen_llh_fn(theta, self.x_o) + self.prior.log_prob(
                 theta
             )
+
+
+

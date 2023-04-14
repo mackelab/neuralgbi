@@ -64,9 +64,6 @@ def collect_samples(cfg: DictConfig) -> None:
         # load inference samples
         for algo in algos:
             posterior_dir = f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/posterior_inference/"
-            # Load inference algorithm
-            if algo == "GBI":
-                gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/{algo}/inference.pickle")
                 
             if path.isdir(posterior_dir):                
                 # Take the latest run
