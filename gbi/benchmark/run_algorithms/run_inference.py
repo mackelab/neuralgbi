@@ -56,15 +56,15 @@ def sample_NLE(inference, x_o, task, n_samples=10_000):
                                      mcmc_method="slice_np_vectorized", 
                                      mcmc_parameters={"num_chains": 100}).set_default_x(x_o).sample((n_samples,))
 
-def sample_ABC(inference, x_o, beta):
+def sample_ABC(inference, x_o, beta, n_abc_samples):
     inference = inference.set_default_x(x_o)
     num_accepted = 0
-    while num_accepted < 50:
+    while num_accepted < n_abc_samples:
         posterior_samples = inference.sample(beta)
         num_accepted = len(posterior_samples)
         log.info(f"beta: {beta}, num_accepted: {num_accepted}")
         beta /= 1.1  # Reduce beta in order to make the posterior artificially broader.
-    return
+    return posterior_samples[:n_abc_samples]
 
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_inference")
@@ -97,20 +97,21 @@ def run_inference(cfg: DictConfig) -> None:
     task = Task(seed=seed)
 
     ### Sample from inference algorithm and save
+    n_samples = cfg.n_samples
     if cfg.algorithm.name == 'NPE':
-        posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task)
+        posterior_samples = sample_NPE(inference, xos[cfg.task.xo_index], task, n_samples)
     
     elif cfg.algorithm.name == 'NLE':        
-        posterior_samples = sample_NLE(inference, xos[cfg.task.xo_index], task)
+        posterior_samples = sample_NLE(inference, xos[cfg.task.xo_index], task, n_samples)
 
     elif cfg.algorithm.name == 'ABC': 
-        posterior_samples = sample_ABC(inference, xos[cfg.task.xo_index], cfg.task.beta)
+        posterior_samples = sample_ABC(inference, xos[cfg.task.xo_index], cfg.task.beta, cfg.algorithm.n_abc_samples)
 
     elif cfg.algorithm.name == 'GBI':
-        posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task)
+        posterior_samples = sample_GBI(inference, xos[cfg.task.xo_index], cfg.task.beta, task, n_samples)
 
-    elif cfg.algorithm.name == 'eGBI':        
-        posterior_samples = sample_eGBI(inference, distance_function, xos[cfg.task.xo_index], cfg.task.beta, task)
+    elif cfg.algorithm.name == 'eGBI':
+        posterior_samples = sample_eGBI(inference, distance_function, xos[cfg.task.xo_index], cfg.task.beta, task, n_samples, cfg.algorithm.n_emulator_samples)
     
     gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
     

@@ -4,6 +4,7 @@ defaults:
 
 seed: 0
 trained_inference_datetime: ???
+n_samples: 10000
 
 task:
   name: "uniform_1d"
