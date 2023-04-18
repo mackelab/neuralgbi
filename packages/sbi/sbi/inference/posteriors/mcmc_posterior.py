@@ -501,8 +501,6 @@ class MCMCPosterior(NeuralPosterior):
         samples = samples.reshape(-1, dim_samples)[:num_samples, :]
         assert samples.shape[0] == num_samples
 
-        print("samples", samples)
-
         return samples.type(torch.float32).to(self._device)
 
     def _pyro_mcmc(
