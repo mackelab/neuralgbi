@@ -45,7 +45,7 @@ class LinearGaussian:
             + predicted_mean**2
             - 2 * self.x_o * predicted_mean
             + self.x_o**2
-        ).sum(
+        ).mean(
             dim=1
         )  # Sum over dimensions of the Gaussian
         return expected_value_of_d

@@ -378,9 +378,8 @@ class DistanceEstimator(nn.Module):
         if not hasattr(self, "embedding_net_x"):
             # If we don't have an embedding net, just pass through.
             self.embedding_net_x = nn.Identity()
-            x_embedded = x
-        else:
-            x_embedded = self.embedding_net_x(x)
+            
+        x_embedded = self.embedding_net_x(x)
         return self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))
         )
