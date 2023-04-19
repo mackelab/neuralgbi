@@ -126,7 +126,7 @@ class GBInference:
                 # Get the batch of theta, x, and pre-computed distances.
                 theta_batch, x_batch, dist_batch = (
                     self.theta[idx_batch[:, 0]],
-                    self.x_target[idx_batch[:, 0]],
+                    self.x_target[idx_batch[:, 1]],
                     self.distance_precomputed[idx_batch[:, 0], idx_batch[:, 1]],
                 )
 
