@@ -15,7 +15,7 @@ class ABC:
     def set_default_x(self, x_o):
         self.x_o = x_o
         return self
-    
+
     def set_dist_fn(self, dist_fn):
         self.dist_fn = dist_fn
         return self

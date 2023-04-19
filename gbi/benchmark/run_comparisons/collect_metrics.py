@@ -19,8 +19,9 @@ task_classes = {
     "uniform_1d": UniformNoise1D,
     "two_moons": TwoMoonsGBI,
     "linear_gaussian": LinearGaussian,
-    "gaussian_mixture": GaussianMixture
+    "gaussian_mixture": GaussianMixture,
 }
+
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_comparisons")
 def collect_metrics(cfg: DictConfig) -> None:
@@ -32,49 +33,69 @@ def collect_metrics(cfg: DictConfig) -> None:
         distance_func = distances.mse_dist
 
     inference_datetime = cfg.inference_datetime
-    if inference_datetime=="None":
+    if inference_datetime == "None":
         inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
 
     # Load posterior samples and GBI object for computing distances
-    posterior_samples_collected = gbi_utils.pickle_load(f'{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl')
-    gbi_inference = gbi_utils.pickle_load(f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle")
+    posterior_samples_collected = gbi_utils.pickle_load(
+        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
+    )
+    gbi_inference = gbi_utils.pickle_load(
+        f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle"
+    )
 
     df_collect = []
     predictives_collect = []
     for i_x in tqdm(range(len(posterior_samples_collected))):
         xo_info, xo_theta, posterior_samples = posterior_samples_collected[i_x]
-        xo, theta_gt = xo_theta['xo'], xo_theta['theta_gt']
+        xo, theta_gt = xo_theta["xo"], xo_theta["theta_gt"]
         predictives_cur_xo = {}
         for alg, samples_alg in posterior_samples.items():
             predictives_cur_xo[alg] = {}
             for beta_str, samples in samples_alg.items():
-                beta = float(beta_str.split('_')[-1])
-                task = task_classes[task_name](beta=beta, x_o=xo)            
+                beta = float(beta_str.split("_")[-1])
+                task = task_classes[task_name](beta=beta, x_o=xo)
 
                 # compute predictives and summary, collect
-                predictives = gbi_utils.compute_predictives(samples, task, distance_func, gbi_inference)
-                predictives_cur_xo[alg][beta_str] = predictives 
+                predictives = gbi_utils.compute_predictives(
+                    samples, task, distance_func, gbi_inference
+                )
+                predictives_cur_xo[alg][beta_str] = predictives
 
-                summary = gbi_utils.compute_moments(predictives)                
+                summary = gbi_utils.compute_moments(predictives)
                 df_summary = pd.DataFrame([summary.values()], columns=summary.keys())
-                
-                # compute C2ST against GT GBI posterior if it's a GBI algorithm
-                df_summary['c2st'] = torch.nan
-                if alg in ["GBI", "eGBI", "ABC"]:                                        
-                    df_summary['c2st'] = C2ST(samples, posterior_samples['GT'][beta_str]).numpy()
 
-                df_info = pd.DataFrame([[task_name, *xo_info, alg, beta]], columns=['task', 'xo_idx', 'xo_specified', 'xo_known', 'algorithm', 'beta'])
-                df_collect.append(pd.concat((df_info, df_summary), axis=1))    
-        
+                # compute C2ST against GT GBI posterior if it's a GBI algorithm
+                df_summary["c2st"] = torch.nan
+                if alg in ["GBI", "eGBI", "ABC"]:
+                    df_summary["c2st"] = C2ST(
+                        samples, posterior_samples["GT"][beta_str]
+                    ).numpy()
+
+                df_info = pd.DataFrame(
+                    [[task_name, *xo_info, alg, beta]],
+                    columns=[
+                        "task",
+                        "xo_idx",
+                        "xo_specified",
+                        "xo_known",
+                        "algorithm",
+                        "beta",
+                    ],
+                )
+                df_collect.append(pd.concat((df_info, df_summary), axis=1))
+
         predictives_collect.append([xo_info, xo_theta, predictives_cur_xo])
 
-
     df_summaries = pd.concat(df_collect, ignore_index=True)
-    save_path = f'{inference_dir}/{task_name}/{inference_datetime}'
+    save_path = f"{inference_dir}/{task_name}/{inference_datetime}"
     print(f"Predictives and summary CSV saved in {save_path}")
-    df_summaries.to_csv(save_path + '/comparison_summaries.csv')
-    gbi_utils.pickle_dump(save_path + '/posterior_predictives_all.pkl', predictives_collect)
+    df_summaries.to_csv(save_path + "/comparison_summaries.csv")
+    gbi_utils.pickle_dump(
+        save_path + "/posterior_predictives_all.pkl", predictives_collect
+    )
     return
+
 
 if __name__ == "__main__":
     collect_metrics()

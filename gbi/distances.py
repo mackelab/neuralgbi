@@ -20,7 +20,7 @@ def mae_dist(xs: Tensor, x_o: Tensor) -> Tensor:
 
 
 ## MMD
-def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:    
+def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     assert len(xs.shape) == 4
     assert len(x_o.shape) > 1
     assert xs.shape[2] > 1

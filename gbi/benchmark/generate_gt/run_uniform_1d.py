@@ -20,10 +20,12 @@ log = logging.getLogger("run_benchmark_gt")
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run")
 def run(cfg: DictConfig) -> None:
-
     dir_path = get_original_cwd()
-    
-    with open(f"{dir_path}/../tasks/{cfg.task.name}/xos/xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl", "rb") as handle:
+
+    with open(
+        f"{dir_path}/../tasks/{cfg.task.name}/xos/xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl",
+        "rb",
+    ) as handle:
         simulated_x = pickle.load(handle)
     x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
 

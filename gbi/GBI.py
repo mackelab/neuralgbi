@@ -72,13 +72,13 @@ class GBInference:
             if self.distance_net != None:
                 print("Warning: Overwriting existing distance net.")
             self.distance_net = distance_net
-        
+
         # Define loss and optimizer.
         nn_loss = nn.MSELoss()
         optimizer = optim.Adam(self.distance_net.parameters())
 
         # Hold out entire rows of theta/x for validation, but leave all x_targets intact.
-        #       THE OTHER OPTION is to hold out all thetas, and the corresponding xs in x_target.        
+        #       THE OTHER OPTION is to hold out all thetas, and the corresponding xs in x_target.
         dataset = TensorDataset(torch.arange(len(self.theta)))
         train_set, val_set = torch.utils.data.random_split(
             dataset,
@@ -87,10 +87,16 @@ class GBInference:
             ),
         )
         dataloader = DataLoader(train_set, batch_size=training_batch_size, shuffle=True)
-        
+
         # Get validation set by combining all held out thetas with all x_targets, and their distances.
-        idx_val = torch.cartesian_prod(Tensor(val_set.indices).to(int), torch.arange(len(self.x_target),dtype=int))
-        theta_val, x_val, dist_val = self.theta[idx_val[:,0]], self.x_target[idx_val[:,1]], self.distance_precomputed[idx_val[:,0], idx_val[:,1]]
+        idx_val = torch.cartesian_prod(
+            Tensor(val_set.indices).to(int), torch.arange(len(self.x_target), dtype=int)
+        )
+        theta_val, x_val, dist_val = (
+            self.theta[idx_val[:, 0]],
+            self.x_target[idx_val[:, 1]],
+            self.distance_precomputed[idx_val[:, 0], idx_val[:, 1]],
+        )
 
         # Training loop.
         train_losses, val_losses = [], []
@@ -99,17 +105,30 @@ class GBInference:
         while epoch <= max_n_epochs and not self._check_convergence(
             epoch, stop_after_counter_reaches
         ):
-            # Randomly sample one x_target for each theta for each epoch, without replacement.            
-            idx_x_targets_epoch = torch.ones((len(self.x_target),)).multinomial(len(train_set.indices), replacement=False)            
+            # Randomly sample one x_target for each theta for each epoch, without replacement.
+            idx_x_targets_epoch = torch.ones((len(self.x_target),)).multinomial(
+                len(train_set.indices), replacement=False
+            )
 
             for i_b, idx_theta_batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
                 # Combine theta and x_target training indices.
-                idx_batch = torch.vstack((idx_theta_batch[0], idx_x_targets_epoch[i_b*training_batch_size:(i_b+1)*training_batch_size])).T
-                
+                idx_batch = torch.vstack(
+                    (
+                        idx_theta_batch[0],
+                        idx_x_targets_epoch[
+                            i_b * training_batch_size : (i_b + 1) * training_batch_size
+                        ],
+                    )
+                ).T
+
                 # Get the batch of theta, x, and pre-computed distances.
-                theta_batch, x_batch, dist_batch = self.theta[idx_batch[:,0]], self.x_target[idx_batch[:,0]], self.distance_precomputed[idx_batch[:,0], idx_batch[:,1]]
+                theta_batch, x_batch, dist_batch = (
+                    self.theta[idx_batch[:, 0]],
+                    self.x_target[idx_batch[:, 0]],
+                    self.distance_precomputed[idx_batch[:, 0], idx_batch[:, 1]],
+                )
 
                 # Forward pass for distances.
                 dist_pred = self.distance_net(theta_batch, x_batch).squeeze()
@@ -148,12 +167,12 @@ class GBInference:
     def predict_distance(self, theta, x):
         # Convenience function that does fixes the shape of x.
         if theta.shape != x.shape:
-            if len(x.shape)==2:
+            if len(x.shape) == 2:
                 x = x.repeat(theta.shape[0], 1)
-            elif len(x.shape)==3:
+            elif len(x.shape) == 3:
                 # Has multiple independent observations, i.e., gaussian mixture task.
                 x = x.repeat(theta.shape[0], 1, 1)
-                                        
+
         with torch.no_grad():
             dist = self.distance_net(theta, x).squeeze(1)
         return dist
@@ -188,20 +207,20 @@ class GBInference:
             distance_net = self.distance_net
 
         # Build and return function.
-        def generalized_loglikelihood(theta: Tensor, x_o: Tensor):            
-            theta = atleast_2d(theta)            
+        def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
+            theta = atleast_2d(theta)
             dist_pred = self.predict_distance(theta, x_o)
-            
+
             ## reshaping of x is taken care of in predict_distance
             # if len(x_o.shape)==2:
             #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1))).squeeze(1)
             # elif len(x_o.shape)==3:
             #     # Has multiple independent observations, i.e., gaussian mixture task.
             #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1, 1))).squeeze(1)
-            
+
             ## general solution to this
             # dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], *[1]*(len(x_o.shape)-1)))).squeeze(1)
-            
+
             assert dist_pred.shape == (theta.shape[0],)
             return dist_pred
 
@@ -279,21 +298,32 @@ class GBInferenceEmulator:
 
     def build_amortized_GLL(self):
         """Build generalized likelihood function from emulator."""
+
         # Build and return function.
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
             n_iid = x_o.shape[0]
             with torch.no_grad():
-                if n_iid==1:
-                    # Single observation, no iid dimension.                
-                    x_emulator = self.emulator_net.sample(self.n_emulator_samples, theta)
+                if n_iid == 1:
+                    # Single observation, no iid dimension.
+                    x_emulator = self.emulator_net.sample(
+                        self.n_emulator_samples, theta
+                    )
                 else:
                     # Multiple iid observations, pad to iid dimension (2).
                     # i.e., (n_theta, n_emulator_samples, iid, data)
-                    x_emulator = torch.concat([self.emulator_net.sample(self.n_emulator_samples, theta)[:,:,None,:] for _ in range(n_iid)],2)
-            
+                    x_emulator = torch.concat(
+                        [
+                            self.emulator_net.sample(self.n_emulator_samples, theta)[
+                                :, :, None, :
+                            ]
+                            for _ in range(n_iid)
+                        ],
+                        2,
+                    )
+
             dist_pred = self.distance_func(x_emulator, x_o)
-            assert dist_pred.shape == (theta.shape[0],)            
+            assert dist_pred.shape == (theta.shape[0],)
             return dist_pred
 
         return generalized_loglikelihood
@@ -386,7 +416,7 @@ class DistanceEstimator(nn.Module):
         if not hasattr(self, "embedding_net_x"):
             # If we don't have an embedding net, just pass through.
             self.embedding_net_x = nn.Identity()
-            
+
         x_embedded = self.embedding_net_x(x)
         return self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))
@@ -410,6 +440,3 @@ class GBIPotential(BasePotential):
             return -self.beta * self.gen_llh_fn(theta, self.x_o) + self.prior.log_prob(
                 theta
             )
-
-
-

@@ -136,7 +136,6 @@ def train(
     _best_model_state_dict = None
 
     while epoch <= max_num_epochs:
-
         (
             conv,
             stop_after_epochs,

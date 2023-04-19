@@ -33,8 +33,5 @@ def run_mcmc(task):
     )
     samples = posterior.sample((10_000,))
 
-    with open(
-        "mcmc_samples.pkl", "wb"
-    ) as handle:
+    with open("mcmc_samples.pkl", "wb") as handle:
         pickle.dump(samples, handle)
-        

@@ -36,7 +36,6 @@ class ProposalClass:
 
 
 def run_rejection(task, config, proposal: Union[str, Any]):
-
     if proposal == "net":
         with open("trained_nn.pkl", "rb") as handle:
             trained_nn = pickle.load(handle)
