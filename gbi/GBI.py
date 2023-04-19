@@ -68,17 +68,18 @@ class GBInference:
         plot_losses: bool = True,
     ) -> nn.Module:
         # Can use custom distance net, otherwise take existing in class.
-        if distance_net == None:
-            distance_net = self.distance_net
-        else:
+        if distance_net != None:
+            if self.distance_net != None:
+                print("Warning: Overwriting existing distance net.")
             self.distance_net = distance_net
-
+        
         # Define loss and optimizer.
         nn_loss = nn.MSELoss()
-        optimizer = optim.Adam(distance_net.parameters())
+        optimizer = optim.Adam(self.distance_net.parameters())
 
-        # Splitting train and validation set
-        dataset = TensorDataset(self.idx_train)
+        # Hold out entire rows of theta/x for validation, but leave all x_targets intact.
+        #       THE OTHER OPTION is to hold out all thetas, and the corresponding xs in x_target.        
+        dataset = TensorDataset(torch.arange(len(self.theta)))
         train_set, val_set = torch.utils.data.random_split(
             dataset,
             (Tensor([1 - validation_fraction, validation_fraction]) * len(dataset)).to(
@@ -86,9 +87,10 @@ class GBInference:
             ),
         )
         dataloader = DataLoader(train_set, batch_size=training_batch_size, shuffle=True)
-
-        # Get validation set.
-        theta_val, x_val, dist_val = self._idx_to_data(val_set[:])
+        
+        # Get validation set by combining all held out thetas with all x_targets, and their distances.
+        idx_val = torch.cartesian_prod(Tensor(val_set.indices).to(int), torch.arange(len(self.x_target),dtype=int))
+        theta_val, x_val, dist_val = self.theta[idx_val[:,0]], self.x_target[idx_val[:,1]], self.distance_precomputed[idx_val[:,0], idx_val[:,1]]
 
         # Training loop.
         train_losses, val_losses = [], []
@@ -97,14 +99,20 @@ class GBInference:
         while epoch <= max_n_epochs and not self._check_convergence(
             epoch, stop_after_counter_reaches
         ):
-            for i_b, idx_batch in enumerate(dataloader):
+            # Randomly sample one x_target for each theta for each epoch, without replacement.            
+            idx_x_targets_epoch = torch.ones((len(self.x_target),)).multinomial(len(train_set.indices), replacement=False)            
+
+            for i_b, idx_theta_batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
-                # Load batch of theta, x, and pre-computed distances.
-                theta_batch, x_batch, dist_batch = self._idx_to_data(idx_batch)
+                # Combine theta and x_target training indices.
+                idx_batch = torch.vstack((idx_theta_batch[0], idx_x_targets_epoch[i_b*training_batch_size:(i_b+1)*training_batch_size])).T
+                
+                # Get the batch of theta, x, and pre-computed distances.
+                theta_batch, x_batch, dist_batch = self.theta[idx_batch[:,0]], self.x_target[idx_batch[:,0]], self.distance_precomputed[idx_batch[:,0], idx_batch[:,1]]
 
                 # Forward pass for distances.
-                dist_pred = distance_net(theta_batch, x_batch).squeeze()
+                dist_pred = self.distance_net(theta_batch, x_batch).squeeze()
 
                 # Training loss.
                 l = nn_loss(dist_batch, dist_pred)
@@ -114,7 +122,7 @@ class GBInference:
 
             # Compute validation loss each epoch.
             with torch.no_grad():
-                dist_pred = distance_net(theta_val, x_val).squeeze()
+                dist_pred = self.distance_net(theta_val, x_val).squeeze()
                 self._val_loss = nn_loss(dist_val, dist_pred).item()
                 val_losses.append([i_b * epoch, self._val_loss])
 
@@ -134,8 +142,8 @@ class GBInference:
 
         # Avoid keeping the gradients in the resulting network, which can
         # cause memory leakage when benchmarking.
-        distance_net.zero_grad(set_to_none=True)
-        return deepcopy(distance_net)
+        self.distance_net.zero_grad(set_to_none=True)
+        return deepcopy(self.distance_net)
 
     def predict_distance(self, theta, x):
         # Convenience function that does fixes the shape of x.
