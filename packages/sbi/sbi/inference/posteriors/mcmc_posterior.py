@@ -52,6 +52,7 @@ class MCMCPosterior(NeuralPosterior):
         init_strategy_parameters: Dict[str, Any] = {},
         init_strategy_num_candidates: Optional[int] = None,
         num_workers: int = 1,
+        frac_chains_to_finish: float = 0.9,
         device: Optional[str] = None,
         x_shape: Optional[torch.Size] = None,
     ):
@@ -107,6 +108,7 @@ class MCMCPosterior(NeuralPosterior):
         self.init_strategy = init_strategy
         self.init_strategy_parameters = init_strategy_parameters
         self.num_workers = num_workers
+        self.frac_chains_to_finish = frac_chains_to_finish
         self._posterior_sampler = None
         # Hardcode parameter name to reduce clutter kwargs.
         self.param_name = "theta"
@@ -197,6 +199,7 @@ class MCMCPosterior(NeuralPosterior):
         mcmc_method: Optional[str] = None,
         sample_with: Optional[str] = None,
         num_workers: Optional[int] = None,
+        frac_chains_to_finish: Optional[float] = None,
         show_progress_bars: bool = True,
     ) -> Union[Tensor, Tuple[Tensor, InferenceData]]:
         r"""Return samples from posterior distribution $p(\theta|x)$ with MCMC.
@@ -228,6 +231,11 @@ class MCMCPosterior(NeuralPosterior):
         num_chains = self.num_chains if num_chains is None else num_chains
         init_strategy = self.init_strategy if init_strategy is None else init_strategy
         num_workers = self.num_workers if num_workers is None else num_workers
+        frac_chains_to_finish = (
+            self.frac_chains_to_finish
+            if frac_chains_to_finish is None
+            else frac_chains_to_finish
+        )
         init_strategy_parameters = (
             self.init_strategy_parameters
             if init_strategy_parameters is None
@@ -292,6 +300,7 @@ class MCMCPosterior(NeuralPosterior):
                     warmup_steps=warmup_steps,  # type: ignore
                     vectorized=(method == "slice_np_vectorized"),
                     num_workers=num_workers,
+                    frac_chains_to_finish=frac_chains_to_finish,
                     show_progress_bars=show_progress_bars,
                 )
             elif method in ("hmc", "nuts", "slice"):
@@ -434,6 +443,7 @@ class MCMCPosterior(NeuralPosterior):
         vectorized: bool = False,
         num_workers: int = 1,
         init_width: Union[float, ndarray] = 0.01,
+        frac_chains_to_finish: float = 0.9,
         show_progress_bars: bool = True,
     ) -> Tensor:
         """Custom implementation of slice sampling using Numpy.
@@ -472,9 +482,12 @@ class MCMCPosterior(NeuralPosterior):
             init_width=init_width,
         )
         warmup_ = warmup_steps * thin
-        num_samples_ = ceil((num_samples * thin) / num_chains)
+        # Run more samples in each chain because we require only 90% of chains to finish
+        num_samples_ = ceil((num_samples * thin) / num_chains / frac_chains_to_finish)
         # Run mcmc including warmup
-        samples = posterior_sampler.run(warmup_ + num_samples_)
+        samples = posterior_sampler.run(
+            warmup_ + num_samples_, frac_chains_to_finish=frac_chains_to_finish
+        )
         samples = samples[:, warmup_steps:, :]  # discard warmup steps
         samples = torch.from_numpy(samples)  # chains x samples x dim
 
@@ -482,7 +495,7 @@ class MCMCPosterior(NeuralPosterior):
         self._posterior_sampler = posterior_sampler
 
         # Save sample as potential next init (if init_strategy == 'latest_sample').
-        self._mcmc_init_params = samples[:, -1, :].reshape(num_chains, dim_samples)
+        # self._mcmc_init_params = samples[:, -1, :].reshape(num_chains, dim_samples)
 
         # Collect samples from all chains.
         samples = samples.reshape(-1, dim_samples)[:num_samples, :]

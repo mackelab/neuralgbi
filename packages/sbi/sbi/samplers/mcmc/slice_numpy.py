@@ -120,7 +120,6 @@ class SliceSampler(MCMCSampler):
         for n in tbar:
             # for n in range(int(n_samples)):
             for _ in range(self.thin):
-
                 rng.shuffle(order)
 
                 for i in order:
@@ -406,7 +405,7 @@ class SliceSamplerVectorized:
             self.state[c]["width"] = None
             self.state[c]["x"] = None
 
-    def run(self, num_samples: int) -> np.ndarray:
+    def run(self, num_samples: int, frac_chains_to_finish: float = 1.0) -> np.ndarray:
         """Runs MCMC
 
         Args:
@@ -440,8 +439,7 @@ class SliceSamplerVectorized:
             )
 
         num_chains_finished = 0
-        while num_chains_finished != self.num_chains:
-
+        while num_chains_finished < frac_chains_to_finish * self.num_chains:
             num_chains_finished = 0
 
             for sc in self.state.values():
@@ -582,7 +580,12 @@ class SliceSamplerVectorized:
                 if sc["state"] == "DONE":
                     num_chains_finished += 1
 
-        samples = np.stack([self.state[c]["samples"] for c in range(self.num_chains)])
+        samples = []
+        for i in range(self.num_chains):
+            sc = self.state[i]
+            if sc["state"] == "DONE":
+                samples.append(sc["samples"])
+        samples = np.stack(samples)
 
         samples = samples[:, :: self.thin, :]  # thin chains
 

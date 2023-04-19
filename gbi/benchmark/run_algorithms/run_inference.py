@@ -14,25 +14,10 @@ import logging
 
 log = logging.getLogger("inference")
 
-def sample_GBI(inference, x_o, beta, task, n_samples=10_000):    
-    potential_fn = inference.get_potential(x_o=x_o, beta=beta)    
-    theta_transform = mcmc_transform(task.prior)
-    posterior = MCMCPosterior(
-            potential_fn,
-            theta_transform=theta_transform,
-            proposal=task.prior,
-            method="slice_np_vectorized",
-            thin=10,
-            warmup_steps=50,
-            num_chains=100,
-            init_strategy="resample",
-        )
-    posterior_samples = posterior.sample((n_samples,))
-    return posterior_samples
 
-def sample_eGBI(inference, distance_function, x_o, beta, task, n_samples=10_000, n_emulator_samples=10):
-    potential_fn = inference.get_potential(x_o, beta)
-    theta_transform = mcmc_transform(task.prior)    
+def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
+    potential_fn = inference.get_potential(x_o=x_o, beta=beta)
+    theta_transform = mcmc_transform(task.prior)
     posterior = MCMCPosterior(
         potential_fn,
         theta_transform=theta_transform,
@@ -42,19 +27,58 @@ def sample_eGBI(inference, distance_function, x_o, beta, task, n_samples=10_000,
         warmup_steps=50,
         num_chains=100,
         init_strategy="resample",
+        frac_chains_to_finish=0.9,
     )
     posterior_samples = posterior.sample((n_samples,))
+    assert len(posterior_samples) == n_samples, "number of samples does not match."
+    return posterior_samples
+
+
+def sample_eGBI(
+    inference,
+    distance_function,
+    x_o,
+    beta,
+    task,
+    n_samples=10_000,
+    n_emulator_samples=10,
+):
+    potential_fn = inference.get_potential(x_o, beta)
+    theta_transform = mcmc_transform(task.prior)
+    posterior = MCMCPosterior(
+        potential_fn,
+        theta_transform=theta_transform,
+        proposal=task.prior,
+        method="slice_np_vectorized",
+        thin=10,
+        warmup_steps=50,
+        num_chains=100,
+        init_strategy="resample",
+        frac_chains_to_finish=0.9,
+    )
+    posterior_samples = posterior.sample((n_samples,))
+    assert len(posterior_samples) == n_samples, "number of samples does not match."
     return posterior_samples
 
 
 def sample_NPE(inference, x_o, task, n_samples=10_000):
-    return inference.build_posterior(prior=task.prior).set_default_x(x_o).sample((n_samples,))
+    return (
+        inference.build_posterior(prior=task.prior)
+        .set_default_x(x_o)
+        .sample((n_samples,))
+    )
 
 
-def sample_NLE(inference, x_o, task, n_samples=10_000):    
-    return inference.build_posterior(prior=task.prior,
-                                     mcmc_method="slice_np_vectorized", 
-                                     mcmc_parameters={"num_chains": 100}).set_default_x(x_o).sample((n_samples,))
+def sample_NLE(inference, x_o, task, n_samples=10_000):
+    posterior = inference.build_posterior(
+        prior=task.prior,
+        mcmc_method="slice_np_vectorized",
+        mcmc_parameters={"num_chains": 100, "frac_chains_to_finish": 0.9},
+    ).set_default_x(x_o)
+    posterior_samples = posterior.sample((n_samples,))
+    assert len(posterior_samples) == n_samples, "number of samples does not match."
+    return posterior_samples
+
 
 def sample_ABC(inference, x_o, beta, n_abc_samples):
     inference = inference.set_default_x(x_o)
@@ -68,11 +92,10 @@ def sample_ABC(inference, x_o, beta, n_abc_samples):
 
 
 @hydra.main(version_base="1.1", config_path="config", config_name="run_inference")
-def run_inference(cfg: DictConfig) -> None:    
+def run_inference(cfg: DictConfig) -> None:
     # Get directory of, and load trained inference algorithm.
-    inference_dir = f'../../../../'
-    inference = gbi_utils.pickle_load(inference_dir + 'inference.pickle')    
-    
+    inference_dir = f"../../../../"
+    inference = gbi_utils.pickle_load(inference_dir + "inference.pickle")
 
     # Get high-level task path.
     dir_path = get_original_cwd()
@@ -80,7 +103,7 @@ def run_inference(cfg: DictConfig) -> None:
 
     # Get observation directory and load xo.
     observation_dir = full_path_prepend + "/xos/"
-    obs_file = f'xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl'
+    obs_file = f"xo_{cfg.task.is_specified}_{cfg.task.is_known}.pkl"
     xos = gbi_utils.pickle_load(observation_dir + obs_file)
 
     # Set seed
@@ -93,35 +116,46 @@ def run_inference(cfg: DictConfig) -> None:
     _ = np.random.seed(seed=seed)
 
     # Get task and distance function.
-    Task, distance_function = get_task_and_distance_func(cfg)    
+    Task, distance_function = get_task_and_distance_func(cfg)
     task = Task(seed=seed)
 
     ### Sample from inference algorithm and save
     n_samples = cfg.n_samples
-    x_o = xos[cfg.task.xo_index]    
+    x_o = xos[cfg.task.xo_index]
 
-    if cfg.task.name == 'gaussian_mixture' and cfg.algorithm.name in ['NPE', 'GBI']:
-            # Manually pad batch dimension for gaussian mixture, otherwise fails input check.
-            # But not sure why it doesn't for the other algorithms...
-            x_o = x_o[None,:,:]
+    if cfg.task.name == "gaussian_mixture" and cfg.algorithm.name in ["NPE", "GBI"]:
+        # Manually pad batch dimension for gaussian mixture, otherwise fails input check.
+        # But not sure why it doesn't for the other algorithms...
+        x_o = x_o[None, :, :]
 
-    if cfg.algorithm.name == 'NPE':        
+    if cfg.algorithm.name == "NPE":
         posterior_samples = sample_NPE(inference, x_o, task, n_samples)
-    
-    elif cfg.algorithm.name == 'NLE':        
+
+    elif cfg.algorithm.name == "NLE":
         posterior_samples = sample_NLE(inference, x_o, task, n_samples)
 
-    elif cfg.algorithm.name == 'ABC': 
-        posterior_samples = sample_ABC(inference, x_o, cfg.task.beta, cfg.algorithm.n_abc_samples)
+    elif cfg.algorithm.name == "ABC":
+        posterior_samples = sample_ABC(
+            inference, x_o, cfg.task.beta, cfg.algorithm.n_abc_samples
+        )
 
-    elif cfg.algorithm.name == 'GBI':
+    elif cfg.algorithm.name == "GBI":
         posterior_samples = sample_GBI(inference, x_o, cfg.task.beta, task, n_samples)
 
-    elif cfg.algorithm.name == 'eGBI':
-        posterior_samples = sample_eGBI(inference, distance_function, x_o, cfg.task.beta, task, n_samples, cfg.algorithm.n_emulator_samples)
-    
-    gbi_utils.pickle_dump('posterior_samples.pkl', posterior_samples)
-    
+    elif cfg.algorithm.name == "eGBI":
+        posterior_samples = sample_eGBI(
+            inference,
+            distance_function,
+            x_o,
+            cfg.task.beta,
+            task,
+            n_samples,
+            cfg.algorithm.n_emulator_samples,
+        )
+
+    gbi_utils.pickle_dump("posterior_samples.pkl", posterior_samples)
+
+
 if __name__ == "__main__":
     run_inference()
 
@@ -153,7 +187,3 @@ pseudo code:
         - c2st
         - posterior predictive distance
 """
-
-
-
-
