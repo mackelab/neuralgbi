@@ -24,6 +24,8 @@ def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     assert len(xs.shape) == 4
     assert len(x_o.shape) > 1
     assert xs.shape[2] > 1
+    if len(x_o.shape) > 2:
+        x_o = x_o.squeeze()
     assert x_o.shape[0] > 1
 
     mmds = torch.stack([sample_based_mmd(x[0], x_o) for x in xs])

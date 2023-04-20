@@ -1,5 +1,6 @@
 # neuralgbi
-(planned) ICML submission on Generalized Bayesian Inference
+_Project owners_: Richard Gao & Michael Deistler
+Amortized neural Generalized Bayesian Inference for SBI applications: using neural network-based regression and density estimation to do generalized Bayesian inference, i.e., using distance functions as pseudo-likelihood functions.
 
 # Installing dependencies
 `pip install -e .` to run setup.

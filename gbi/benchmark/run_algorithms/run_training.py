@@ -144,6 +144,7 @@ def train_GBI(theta, x, task, config, task_folder, task_name):
     distance_net = inference.train(
         training_batch_size=config.training_batch_size,
         max_n_epochs=config.max_epochs,
+        stop_after_counter_reaches=config.n_epochs_convergence,
         print_every_n=config.print_every_n,
         plot_losses=False,
     )
