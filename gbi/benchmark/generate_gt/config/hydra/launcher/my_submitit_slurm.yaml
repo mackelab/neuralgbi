@@ -2,6 +2,6 @@ defaults:
   - submitit_slurm
 
 timeout_min: 300
-mem_gb: 8
-cpus_per_task: 1
-partition: macke
+# mem_gb: 8
+# cpus_per_task: 64
+# partition: macke
