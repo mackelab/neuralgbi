@@ -108,7 +108,7 @@ def collect_samples(cfg: DictConfig) -> None:
 
     # Save collected samples
     save_path = (
-        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
+        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all_{task_name}.pkl"
     )
     gbi_utils.pickle_dump(save_path, posterior_samples_collected)
     print("---Collected posterior samples:---")

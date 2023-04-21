@@ -38,7 +38,7 @@ def collect_metrics(cfg: DictConfig) -> None:
 
     # Load posterior samples and GBI object for computing distances
     posterior_samples_collected = gbi_utils.pickle_load(
-        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all.pkl"
+        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all_{task_name}.pkl"
     )
     gbi_inference = gbi_utils.pickle_load(
         f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle"
@@ -90,9 +90,9 @@ def collect_metrics(cfg: DictConfig) -> None:
     df_summaries = pd.concat(df_collect, ignore_index=True)
     save_path = f"{inference_dir}/{task_name}/{inference_datetime}"
     print(f"Predictives and summary CSV saved in {save_path}")
-    df_summaries.to_csv(save_path + "/comparison_summaries.csv")
+    df_summaries.to_csv(save_path + f"/comparison_summaries_{task_name}.csv")
     gbi_utils.pickle_dump(
-        save_path + "/posterior_predictives_all.pkl", predictives_collect
+        save_path + f"/posterior_predictives_all_{task_name}.pkl", predictives_collect
     )
     return
 
