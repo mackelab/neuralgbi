@@ -58,6 +58,7 @@ def train_NPE(theta, x, task, config, task_name):
     else:
         embedding_net = nn.Identity()
 
+    ### TURN THIS OFF FOR LINEAR GAUSSIAN
     if config.sigmoid_theta:
         # Apply sigmoid on theta to keep into prior range.
         net = get_nn_models.posterior_nn(
