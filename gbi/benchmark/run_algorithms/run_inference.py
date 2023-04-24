@@ -10,6 +10,7 @@ from sbi.utils import mcmc_transform
 from gbi.GBI import GBInferenceEmulator
 import gbi.utils.utils as gbi_utils
 from run_training import get_task_and_distance_func
+import time
 import logging
 
 log = logging.getLogger("inference")
@@ -128,6 +129,8 @@ def run_inference(cfg: DictConfig) -> None:
         # But not sure why it doesn't for the other algorithms...
         x_o = x_o[None, :, :]
 
+    time_start = time.time()
+
     if cfg.algorithm.name == "NPE":
         posterior_samples = sample_NPE(inference, x_o, task, n_samples)
 
@@ -153,6 +156,7 @@ def run_inference(cfg: DictConfig) -> None:
             cfg.algorithm.n_emulator_samples,
         )
 
+    log.log(f"Inference time taken: {time.time() - time_start}")
     gbi_utils.pickle_dump("posterior_samples.pkl", posterior_samples)
 
 
