@@ -14,6 +14,11 @@ from gbi.benchmark.tasks.two_moons.task import TwoMoonsGBI
 from gbi.benchmark.tasks.linear_gaussian.task import LinearGaussian
 from gbi.benchmark.tasks.gaussian_mixture.task import GaussianMixture
 import gbi.utils.utils as gbi_utils
+import logging
+import time
+
+log = logging.getLogger("metrics")
+
 
 task_classes = {
     "uniform_1d": UniformNoise1D,
@@ -46,6 +51,7 @@ def collect_metrics(cfg: DictConfig) -> None:
 
     df_collect = []
     predictives_collect = []
+    time_start = time.time()
     for i_x in tqdm(range(len(posterior_samples_collected))):
         xo_info, xo_theta, posterior_samples = posterior_samples_collected[i_x]
         xo, theta_gt = xo_theta["xo"], xo_theta["theta_gt"]
@@ -84,6 +90,8 @@ def collect_metrics(cfg: DictConfig) -> None:
                     ],
                 )
                 df_collect.append(pd.concat((df_info, df_summary), axis=1))
+                log.log(f"Finished {alg} {beta_str} for {xo_info} in {time.time() - time_start:.2f} seconds")
+                time_start = time.time()
 
         predictives_collect.append([xo_info, xo_theta, predictives_cur_xo])
 
