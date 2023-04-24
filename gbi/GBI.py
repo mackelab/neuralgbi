@@ -165,8 +165,9 @@ class GBInference:
         return deepcopy(self.distance_net)
 
     def predict_distance(self, theta, x):
-        # Convenience function that does fixes the shape of x.
-        if theta.shape != x.shape:
+        # Convenience function that does fixes the shape of x.        
+        # Expands to have the same batch size as theta, in case x is [1, n_dim].
+        if theta.shape[0] != x.shape[0]:
             if len(x.shape) == 2:
                 x = x.repeat(theta.shape[0], 1)
             elif len(x.shape) == 3:
@@ -416,7 +417,7 @@ class DistanceEstimator(nn.Module):
         if not hasattr(self, "embedding_net_x"):
             # If we don't have an embedding net, just pass through.
             self.embedding_net_x = nn.Identity()
-
+        
         x_embedded = self.embedding_net_x(x)
         return self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))

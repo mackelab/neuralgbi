@@ -54,7 +54,7 @@ def collect_metrics(cfg: DictConfig) -> None:
     time_start = time.time()
     for i_x in tqdm(range(len(posterior_samples_collected))):
         xo_info, xo_theta, posterior_samples = posterior_samples_collected[i_x]
-        xo, theta_gt = xo_theta["xo"], xo_theta["theta_gt"]
+        xo, theta_gt = xo_theta["xo"], xo_theta["theta_gt"]        
         predictives_cur_xo = {}
         for alg, samples_alg in posterior_samples.items():
             predictives_cur_xo[alg] = {}

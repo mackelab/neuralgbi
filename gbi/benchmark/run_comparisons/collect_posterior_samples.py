@@ -67,7 +67,7 @@ def collect_samples(cfg: DictConfig) -> None:
             gt_sample_path = f"{gt_dir}/{task_name}/{gt_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/rejection_samples.pkl"            
             if path.exists(gt_sample_path):
                 posterior_samples["GT"][f"beta_{beta}"] = gbi_utils.pickle_load(gt_sample_path)
-            else: 
+            else:                 
                 print(f"---GT posterior samples for beta={beta}, {xo_info} not found.")
             
 
