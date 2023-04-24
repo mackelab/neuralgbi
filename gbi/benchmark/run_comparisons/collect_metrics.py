@@ -67,7 +67,7 @@ def collect_metrics(cfg: DictConfig) -> None:
 
                 # compute C2ST against GT GBI posterior if it's a GBI algorithm
                 df_summary["c2st"] = torch.nan
-                if alg in ["GBI", "eGBI", "ABC"]:
+                if (alg in ["GBI", "eGBI", "ABC"]) and (beta_str in posterior_samples["GT"]):                
                     df_summary["c2st"] = C2ST(
                         samples, posterior_samples["GT"][beta_str]
                     ).numpy()

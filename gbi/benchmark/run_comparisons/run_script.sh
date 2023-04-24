@@ -10,3 +10,8 @@ python collect_posterior_samples.py task.name=uniform_1d gt_datetime='None' infe
 python collect_posterior_samples.py task.name=two_moons gt_datetime='None' inference_datetime='None'
 python collect_posterior_samples.py task.name=linear_gaussian gt_datetime='None' inference_datetime='None'
 python collect_posterior_samples.py task.name=gaussian_mixture gt_datetime='None' inference_datetime='None'
+
+
+python collect_posterior_samples.py task.name=two_moons gt_datetime='2023_04_20__18_40_28' inference_datetime='2023_04_21__22_38_19'
+
+# python collect_metrics.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d inference_datetime='2023_04_21__22_38_19'
