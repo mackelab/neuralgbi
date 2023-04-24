@@ -156,7 +156,7 @@ def run_inference(cfg: DictConfig) -> None:
             cfg.algorithm.n_emulator_samples,
         )
 
-    log.log(f"Inference time taken: {time.time() - time_start}")
+    log.info(f"Inference time taken: {time.time() - time_start}")
     gbi_utils.pickle_dump("posterior_samples.pkl", posterior_samples)
 
 

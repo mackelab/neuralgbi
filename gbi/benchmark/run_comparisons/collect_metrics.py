@@ -90,7 +90,7 @@ def collect_metrics(cfg: DictConfig) -> None:
                     ],
                 )
                 df_collect.append(pd.concat((df_info, df_summary), axis=1))
-                log.log(f"Finished {alg} {beta_str} for {xo_info} in {time.time() - time_start:.2f} seconds")
+                log.info(f"Finished {alg} {beta_str} for {xo_info} in {time.time() - time_start:.2f} seconds")
                 time_start = time.time()
 
         predictives_collect.append([xo_info, xo_theta, predictives_cur_xo])
