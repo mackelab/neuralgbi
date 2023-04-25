@@ -1,7 +1,15 @@
 defaults:
   - _self_  
 
-algos: ['GBI', 'eGBI', 'NPE', 'NLE', 'ABC']
+algos: ['GBI','eGBI','NPE','NLE','ABC']
+
+
+task:
+  name: "uniform_1d"  
+  xo_index: 0  
+  is_specified: "specified"
+  is_known: "known"
+
 task:
   name: "uniform_1d"
   

@@ -40,6 +40,7 @@ def collect_metrics(cfg: DictConfig) -> None:
     inference_datetime = cfg.inference_datetime
     if inference_datetime == "None":
         inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
+    print(f"Computing metrics on inference results from {inference_datetime}")
 
     # Load posterior samples and GBI object for computing distances
     posterior_samples_collected = gbi_utils.pickle_load(
@@ -49,6 +50,7 @@ def collect_metrics(cfg: DictConfig) -> None:
         f"{inference_dir}/{task_name}/{inference_datetime}/GBI/inference.pickle"
     )
 
+    import pdb; pdb.set_trace()
     df_collect = []
     predictives_collect = []
     time_start = time.time()
