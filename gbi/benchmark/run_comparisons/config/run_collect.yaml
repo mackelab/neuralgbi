@@ -1,0 +1,17 @@
+defaults:
+  - _self_  
+
+algos: ['GBI','eGBI','NPE','NLE','ABC']
+
+
+task:
+  name: "uniform_1d"  
+  
+gt_datetime: ???
+inference_datetime: ???
+
+hydra:
+  run:
+      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${now:%Y_%m_%d}__${now:%H_%M_%S}/  
+  job:
+    chdir: True   

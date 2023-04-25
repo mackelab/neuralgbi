@@ -1,0 +1,24 @@
+defaults:
+  - _self_  
+
+# algos: ['GBI','eGBI','NPE','NLE','ABC']
+
+task:
+  name: "uniform_1d"  
+  xo_index: 0  
+  is_specified: "specified"
+  is_known: "known"
+  
+algorithm: GT
+compute_c2st: True
+inference_datetime: ???
+collection_datetime: ???
+
+hydra:
+  run:
+      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/obs_${task.xo_index}_${task.is_specified}_${task.is_known}
+  sweep:
+      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/
+      subdir: obs_${task.xo_index}_${task.is_specified}_${task.is_known}
+  job:
+      chdir: True

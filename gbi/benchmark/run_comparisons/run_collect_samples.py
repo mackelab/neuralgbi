@@ -1,15 +1,13 @@
 import torch
 import numpy as np
-from os import listdir, path
+from os import listdir, path, getcwd
 import itertools
 
 import hydra
+from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 import gbi.utils.utils as gbi_utils
 
-gt_dir = "../../../results/benchmark/ground_truths/"
-inference_dir = "../../../results/benchmark/algorithms/"
-xo_dir = "../../../gbi/benchmark/tasks/"
 
 # TO DO: keep betas for tasks in a config file somewhere
 task_betas = {
@@ -20,8 +18,14 @@ task_betas = {
 }
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="run_comparisons")
+@hydra.main(version_base="1.1", config_path="config", config_name="run_collect")
 def collect_samples(cfg: DictConfig) -> None:
+    # Define paths
+    original_cwd = get_original_cwd()
+    gt_dir = original_cwd + "/../../../results/benchmark/ground_truths/"
+    inference_dir = original_cwd + "/../../../results/benchmark/algorithms/"
+    xo_dir = original_cwd + "/../../../gbi/benchmark/tasks/"
+
     # load xo, gt posterior samples, and inference samples
     task_name = cfg.task.name
     betas = task_betas[task_name]
@@ -29,16 +33,17 @@ def collect_samples(cfg: DictConfig) -> None:
 
     # Take the latest runs for GT and inference samples, unless specified.
     gt_datetime = cfg.gt_datetime
-    if gt_datetime == "None":
-        gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
+    # if gt_datetime == "None":
+    #     gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
     print(f"Collecting GT posterior samples for {task_name} at {gt_datetime}.")
 
 
+    # Note that this works best if all the inference objects are saved in the same directory, i.e., run at the same time, such that hydra would place them in the same datetime folder.
+    # Otherwise specify different inference_datetime for each algo
     inference_datetime = cfg.inference_datetime
-    if inference_datetime == "None":
-        inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
+    # if inference_datetime == "None":
+    #     inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
     print(f"Collecting learned posterior samples for {task_name} at {inference_datetime}.")
-
     algos = cfg.algos
 
     # Define all permutatations.
@@ -66,7 +71,7 @@ def collect_samples(cfg: DictConfig) -> None:
         for beta in betas:
             gt_sample_path = f"{gt_dir}/{task_name}/{gt_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/rejection_samples.pkl"            
             if path.exists(gt_sample_path):
-                posterior_samples["GT"][f"beta_{beta}"] = gbi_utils.pickle_load(gt_sample_path)
+                posterior_samples["GT"][f"beta_{beta}"] = (gbi_utils.pickle_load(gt_sample_path), gt_datetime)
             else:                 
                 print(f"---GT posterior samples for beta={beta}, {xo_info} not found.")
             
@@ -91,9 +96,7 @@ def collect_samples(cfg: DictConfig) -> None:
 
                     ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"                    
                     if path.exists(ps_path):
-                        posterior_samples[algo][f"beta_{beta}"] = gbi_utils.pickle_load(
-                            ps_path
-                        )
+                        posterior_samples[algo][f"beta_{beta}"] = (gbi_utils.pickle_load(ps_path), posterior_datetime)
                     else:
                         print(
                             f"---Posterior samples for {algo}, beta={beta}, {xo_info} not found."                            
@@ -114,12 +117,23 @@ def collect_samples(cfg: DictConfig) -> None:
         )
 
     # Save collected samples
-    save_path = (
-        f"{inference_dir}/{task_name}/{inference_datetime}/posterior_samples_all_{task_name}.pkl"
-    )
+    save_path = getcwd() + '/posterior_samples_collected.pkl'
     gbi_utils.pickle_dump(save_path, posterior_samples_collected)
+    
     print("---Collected posterior samples:---")
-    [print(alg, list(v.keys())) for alg, v in posterior_samples_collected[0][2].items()]
+    # [print(alg, list(v.keys())) for alg, v in posterior_samples_collected[0][2].items()]
+
+    # Count the number of posterior samples collected for each algo and beta
+    counters = {}
+    for ix_, posterior_samples in enumerate(posterior_samples_collected):
+        for algo, v in posterior_samples[2].items():
+            if algo not in counters:
+                counters[algo] = {}
+            for beta, v2 in v.items():
+                if beta not in counters[algo]:
+                    counters[algo][beta] = 0
+                counters[algo][beta] += 1
+    [print(k, v) for k, v in counters.items()]
     print(f"All posterior samples saved as: {save_path}")
     return
 
