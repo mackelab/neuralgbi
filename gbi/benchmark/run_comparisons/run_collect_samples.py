@@ -33,16 +33,15 @@ def collect_samples(cfg: DictConfig) -> None:
 
     # Take the latest runs for GT and inference samples, unless specified.
     gt_datetime = cfg.gt_datetime
-    # if gt_datetime == "None":
-    #     gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
+    if gt_datetime == "None":
+        # Take last GT run
+        gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
     print(f"Collecting GT posterior samples for {task_name} at {gt_datetime}.")
 
 
     # Note that this works best if all the inference objects are saved in the same directory, i.e., run at the same time, such that hydra would place them in the same datetime folder.
     # Otherwise specify different inference_datetime for each algo
     inference_datetime = cfg.inference_datetime
-    # if inference_datetime == "None":
-    #     inference_datetime = np.sort(listdir(f"{inference_dir}/{task_name}/"))[-1]
     print(f"Collecting learned posterior samples for {task_name} at {inference_datetime}.")
     algos = cfg.algos
 

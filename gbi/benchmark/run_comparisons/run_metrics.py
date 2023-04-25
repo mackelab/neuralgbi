@@ -62,10 +62,6 @@ def collect_metrics(cfg: DictConfig) -> None:
         f"Computing metrics on inference results from {cfg.inference_datetime}, collected on {cfg.collection_datetime}"
     )
 
-    # Load posterior samples and GBI object for computing distances
-    posterior_samples_collected = gbi_utils.pickle_load(
-        f"../posterior_samples_collected.pkl"
-    )
     gbi_inference = gbi_utils.pickle_load(f"../../..//GBI/inference.pickle")
 
     # Find the corresponding index in the posterior samples collected
