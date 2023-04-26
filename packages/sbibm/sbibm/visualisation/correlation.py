@@ -59,11 +59,9 @@ def fig_correlation(
     chart = den.correlation_matrix(df, metrics=metrics, **keywords)
 
     if title is not None:
-        chart = chart.properties(
-            title={
-                "text": [title],
-            }
-        ).configure_title(offset=10, orient="top", anchor="middle", dx=title_dx)
+        chart = chart.properties(title={"text": [title]}).configure_title(
+            offset=10, orient="top", anchor="middle", dx=title_dx
+        )
 
     if config == "manuscript":
         chart = chart.configure_text(font="Inter")

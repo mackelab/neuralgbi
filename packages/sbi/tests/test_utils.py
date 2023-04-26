@@ -106,9 +106,7 @@ def get_prob_outside_uniform_prior(
 
 
 def get_normalization_uniform_prior(
-    posterior: DirectPosterior,
-    prior: Distribution,
-    x: Tensor,
+    posterior: DirectPosterior, prior: Distribution, x: Tensor
 ) -> Tuple[Tensor, Tensor, Tensor]:
     """
     Return the unnormalized posterior likelihood, the normalized posterior likelihood,

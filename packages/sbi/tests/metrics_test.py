@@ -37,8 +37,7 @@ TESTCASECONFIG = [
 
 
 @pytest.mark.parametrize(
-    "dist_sigma, c2st_lowerbound, c2st_upperbound,",
-    TESTCASECONFIG,
+    "dist_sigma, c2st_lowerbound, c2st_upperbound,", TESTCASECONFIG
 )
 def test_c2st_with_different_distributions(
     dist_sigma, c2st_lowerbound, c2st_upperbound
@@ -64,8 +63,7 @@ def test_c2st_with_different_distributions(
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "dist_sigma, c2st_lowerbound, c2st_upperbound,",
-    TESTCASECONFIG,
+    "dist_sigma, c2st_lowerbound, c2st_upperbound,", TESTCASECONFIG
 )
 def test_c2st_with_different_distributions_mlp(
     dist_sigma, c2st_lowerbound, c2st_upperbound
@@ -91,8 +89,7 @@ def test_c2st_with_different_distributions_mlp(
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "dist_sigma, c2st_lowerbound, c2st_upperbound,",
-    TESTCASECONFIG,
+    "dist_sigma, c2st_lowerbound, c2st_upperbound,", TESTCASECONFIG
 )
 def test_c2st_scores(dist_sigma, c2st_lowerbound, c2st_upperbound):
 

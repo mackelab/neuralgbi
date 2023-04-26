@@ -58,7 +58,7 @@ EXTRAS = {
         "pyright",
         "torchtestcase",
         "twine",
-    ],
+    ]
 }
 
 here = os.path.abspath(os.path.dirname(__file__))

@@ -126,10 +126,7 @@ def get_default_flows() -> List[str]:
     return list(_FLOW_BUILDERS.keys())
 
 
-def get_flow_builder(
-    name: str,
-    **kwargs,
-) -> Callable:
+def get_flow_builder(name: str, **kwargs) -> Callable:
     """Returns an normalizing flow, by instantiating the flow build with all arguments.
     For details within the keyword arguments we refer to the actual builder class. Some
     common arguments are listed here.
@@ -232,11 +229,10 @@ def init_spline_coupling(dim: int, device: str = "cpu", **kwargs):
     neural_net = DenseNN(
         split_dim, hidden_dims, param_dims, nonlinearity=nonlinearity
     ).to(device)
-    return [dim, split_dim, neural_net], {
-        "count_bins": count_bins,
-        "bound": bound,
-        "order": order,
-    }
+    return (
+        [dim, split_dim, neural_net],
+        {"count_bins": count_bins, "bound": bound, "order": order},
+    )
 
 
 # Register these directly from pyro

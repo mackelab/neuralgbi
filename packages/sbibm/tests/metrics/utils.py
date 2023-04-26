@@ -35,10 +35,7 @@ def sample_blobs_same(
 
 
 def sample_blobs_different(
-    n: int,
-    rows: int = 3,
-    cols: int = 3,
-    rs: int = None,
+    n: int, rows: int = 3, cols: int = 3, rs: int = None
 ) -> (torch.Tensor, torch.Tensor):
     """Generate different blobs for testing type-II error (test power)
 

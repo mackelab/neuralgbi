@@ -19,12 +19,7 @@ from sbi.simulators.linear_gaussian import diagonal_linear_gaussian
 
 @pytest.mark.parametrize("snpe_method", [SNPE_A, SNPE_C])
 @pytest.mark.parametrize(
-    "x_o_batch_dim",
-    (
-        0,
-        1,
-        pytest.param(2, marks=pytest.mark.xfail(raises=ValueError)),
-    ),
+    "x_o_batch_dim", (0, 1, pytest.param(2, marks=pytest.mark.xfail(raises=ValueError)))
 )
 def test_log_prob_with_different_x(snpe_method: type, x_o_batch_dim: bool):
 

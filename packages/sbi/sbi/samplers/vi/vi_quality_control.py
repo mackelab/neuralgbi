@@ -87,9 +87,7 @@ def basic_checks(posterior, N: int = int(5e4)):
 
 
 def psis_diagnostics(
-    potential_fn: Callable,
-    q: Distribution,
-    N: int = int(5e4),
+    potential_fn: Callable, q: Distribution, N: int = int(5e4)
 ) -> float:
     r"""This will evaluate the posteriors quality by investingating its importance
     weights. If q is a perfect posterior approximation then $q(\theta) \propto
@@ -162,7 +160,7 @@ def proportional_to_joint_diagnostics(
         w = torch.linalg.solve(X.T @ X, X.T @ Y)  # Linear regression
 
         residuals = Y - w * X
-        var_res = torch.sum(residuals**2)
+        var_res = torch.sum(residuals ** 2)
         var_tot = torch.sum((Y - Y.mean()) ** 2)
         r2 = 1 - var_res / var_tot  # R2 statistic to evaluate fit
     return r2.item()
@@ -187,8 +185,7 @@ psis_q.__doc__ = psis_diagnostics.__doc__.split("Args:")[0]
 
 
 @register_quality_metric(
-    name="prop",
-    msg="\t Good: Larger than 0.5, best is 1.0  Bad: Smaller than 0.5",
+    name="prop", msg="\t Good: Larger than 0.5, best is 1.0  Bad: Smaller than 0.5"
 )
 def proportionality(posterior, N: int = int(5e4)):
     """

@@ -184,11 +184,7 @@ class ActiveSubspace:
                 use_batch_norm=True,
             )
             input_layer, output_layer = build_input_output_layer(
-                theta,
-                emergent_property,
-                z_score_theta,
-                z_score_property,
-                embedding_net,
+                theta, emergent_property, z_score_theta, z_score_property, embedding_net
             )
             classifier = nn.Sequential(input_layer, classifier, output_layer)
             return classifier
@@ -204,11 +200,7 @@ class ActiveSubspace:
                 nn.Linear(hidden_features, 1),
             )
             input_layer, output_layer = build_input_output_layer(
-                theta,
-                emergent_property,
-                z_score_theta,
-                z_score_property,
-                embedding_net,
+                theta, emergent_property, z_score_theta, z_score_property, embedding_net
             )
             classifier = nn.Sequential(input_layer, classifier, output_layer)
             return classifier
@@ -231,7 +223,7 @@ class ActiveSubspace:
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
     ) -> nn.Module:
         r"""Train a regression network to predict the specified property from $\theta$.
@@ -287,10 +279,9 @@ class ActiveSubspace:
             )
 
         optimizer = optim.Adam(
-            list(self._regression_net.parameters()),
-            lr=learning_rate,
+            list(self._regression_net.parameters()), lr=learning_rate
         )
-        max_num_epochs = 2**31 - 1 if max_num_epochs is None else max_num_epochs
+        max_num_epochs = 2 ** 31 - 1 if max_num_epochs is None else max_num_epochs
 
         # criterion / loss
         criterion = MSELoss()
@@ -305,8 +296,7 @@ class ActiveSubspace:
                 loss.backward()
                 if clip_max_norm is not None:
                     clip_grad_norm_(
-                        self._regression_net.parameters(),
-                        max_norm=clip_max_norm,
+                        self._regression_net.parameters(), max_norm=clip_max_norm
                     )
                 optimizer.step()
 

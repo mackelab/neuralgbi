@@ -456,9 +456,7 @@ def check_data_device(datum_1: torch.Tensor, datum_2: torch.Tensor) -> None:
 
 
 def process_simulator(
-    user_simulator: Callable,
-    prior,
-    is_numpy_simulator: bool,
+    user_simulator: Callable, prior, is_numpy_simulator: bool
 ) -> Callable:
     """Return a simulator that meets the requirements for usage in sbi.
 

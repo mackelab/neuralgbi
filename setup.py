@@ -1,11 +1,6 @@
 from setuptools import find_packages, setup
 
-REQUIRED = [
-    "invoke",
-    "svgutils==0.3.1",
-    "jupyterlab",
-    "sbibm",    
-]
+REQUIRED = ["invoke", "svgutils==0.3.1", "jupyterlab", "sbibm"]
 
 setup(
     name="gbi",

@@ -72,7 +72,7 @@ class UniformNoise1D:
     def _eval_distance_integral(self, x):
         """Integral of (x-x_o)^2 (without constant)."""
         assert self.x_o is not None
-        return (x**3) / 3 - self.x_o * x**2 + x * self.x_o**2
+        return (x ** 3) / 3 - self.x_o * x ** 2 + x * self.x_o ** 2
 
     # def true_posterior_linear_gaussian(self, x_o: Tensor) -> MultivariateNormal:
     #     """Returns the Bayes posterior."""

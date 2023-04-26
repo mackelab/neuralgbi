@@ -46,10 +46,7 @@ def test_api_sre_on_linearGaussian(num_dim: int):
     prior = MultivariateNormal(loc=zeros(num_dim), covariance_matrix=eye(num_dim))
 
     simulator, prior = prepare_for_sbi(diagonal_linear_gaussian, prior)
-    inference = SNRE_B(
-        classifier="resnet",
-        show_progress_bars=False,
-    )
+    inference = SNRE_B(classifier="resnet", show_progress_bars=False)
 
     theta, x = simulate_for_sbi(simulator, prior, 1000, simulation_batch_size=50)
     ratio_estimator = inference.append_simulations(theta, x).train(max_num_epochs=5)
@@ -97,10 +94,7 @@ def test_c2st_sre_on_linearGaussian():
         ),
         prior,
     )
-    inference = SNRE_B(
-        classifier="resnet",
-        show_progress_bars=False,
-    )
+    inference = SNRE_B(classifier="resnet", show_progress_bars=False)
 
     theta, x = simulate_for_sbi(
         simulator, prior, num_simulations, simulation_batch_size=100
@@ -145,10 +139,7 @@ def test_c2st_sre_on_linearGaussian():
     ),
 )
 def test_c2st_sre_variants_on_linearGaussian(
-    num_dim: int,
-    num_trials: int,
-    prior_str: str,
-    method_str: str,
+    num_dim: int, num_trials: int, prior_str: str, method_str: str
 ):
     """Test c2st accuracy of inference with SRE on linear Gaussian model.
 
@@ -177,10 +168,7 @@ def test_c2st_sre_variants_on_linearGaussian(
         return linear_gaussian(theta, likelihood_shift, likelihood_cov)
 
     simulator, prior = prepare_for_sbi(simulator, prior)
-    kwargs = dict(
-        classifier="resnet",
-        show_progress_bars=False,
-    )
+    kwargs = dict(classifier="resnet", show_progress_bars=False)
 
     inference = SNRE_B(**kwargs) if method_str == "sre" else AALR(**kwargs)
 
@@ -283,10 +271,7 @@ def test_c2st_multi_round_snr_on_linearGaussian_vi(num_trials: int):
     potential_fn, theta_transform = ratio_estimator_based_potential(
         prior=prior, ratio_estimator=ratio_estimator, x_o=x_o
     )
-    posterior1 = VIPosterior(
-        potential_fn=potential_fn,
-        theta_transform=theta_transform,
-    )
+    posterior1 = VIPosterior(potential_fn=potential_fn, theta_transform=theta_transform)
     posterior1.train()
 
     theta, x = simulate_for_sbi(
@@ -297,9 +282,7 @@ def test_c2st_multi_round_snr_on_linearGaussian_vi(num_trials: int):
         prior=prior, ratio_estimator=ratio_estimator, x_o=x_o
     )
     posterior = VIPosterior(
-        potential_fn=potential_fn,
-        theta_transform=theta_transform,
-        q=posterior1,
+        potential_fn=potential_fn, theta_transform=theta_transform, q=posterior1
     )
     posterior.train()
 
@@ -396,9 +379,7 @@ def test_api_sre_sampling_methods(sampling_method: str, prior_str: str):
         )
     elif sample_with == "importance":
         posterior = ImportanceSamplingPosterior(
-            potential_fn,
-            proposal=prior,
-            theta_transform=theta_transform,
+            potential_fn, proposal=prior, theta_transform=theta_transform
         )
     else:
         posterior = VIPosterior(

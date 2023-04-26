@@ -307,10 +307,7 @@ class SMCABC(ABCBASE):
             return final_particles
 
     def _set_xo_and_sample_initial_population(
-        self,
-        x_o: Array,
-        num_particles: int,
-        num_initial_pop: int,
+        self, x_o: Array, num_particles: int, num_initial_pop: int
     ) -> Tuple[Tensor, float, Tensor, Tensor]:
         """Return particles, epsilon and distances of initial population."""
 
@@ -382,9 +379,7 @@ class SMCABC(ABCBASE):
                 new_particles.append(particle_candidates[is_accepted])
                 new_log_weights.append(
                     self._calculate_new_log_weights(
-                        particle_candidates[is_accepted],
-                        particles,
-                        log_weights,
+                        particle_candidates[is_accepted], particles, log_weights
                     )
                 )
                 new_distances.append(dists[is_accepted])
@@ -409,9 +404,7 @@ class SMCABC(ABCBASE):
                     # Recalculate weights with new particles.
                     new_log_weights = [
                         self._calculate_new_log_weights(
-                            torch.cat(new_particles),
-                            particles,
-                            log_weights,
+                            torch.cat(new_particles), particles, log_weights
                         )
                     ]
                     new_distances.append(distances[:num_remaining])
@@ -479,10 +472,7 @@ class SMCABC(ABCBASE):
         return distances[qidx].item()
 
     def _calculate_new_log_weights(
-        self,
-        new_particles: Tensor,
-        old_particles: Tensor,
-        old_log_weights: Tensor,
+        self, new_particles: Tensor, old_particles: Tensor, old_log_weights: Tensor
     ) -> Tensor:
         """Return new log weights following formulas in publications A,B anc C."""
 
@@ -609,11 +599,7 @@ class SMCABC(ABCBASE):
             raise ValueError(f"Kernel, '{self.kernel}' not supported.")
 
     def resample_if_ess_too_small(
-        self,
-        particles: Tensor,
-        log_weights: Tensor,
-        ess_min: float,
-        pop_idx: int,
+        self, particles: Tensor, log_weights: Tensor, ess_min: float, pop_idx: int
     ) -> Tuple[Tensor, Tensor]:
         """Return resampled particles and uniform weights if effectice sampling size is
         too small.
@@ -679,7 +665,7 @@ class SMCABC(ABCBASE):
 
         Sets self.x_o once the x_shape can be derived from simulations.
         """
-        (pilot_particles, _, _, pilot_xs,) = self._set_xo_and_sample_initial_population(
+        (pilot_particles, _, _, pilot_xs) = self._set_xo_and_sample_initial_population(
             x_o, num_particles, num_pilot_simulations
         )
         # Adjust with LRA.
@@ -700,9 +686,7 @@ class SMCABC(ABCBASE):
 
         # get weighted samples
         samples = self.sample_from_population_with_weights(
-            particles,
-            weights,
-            num_samples=samples_per_dim * particles.shape[1],
+            particles, weights, num_samples=samples_per_dim * particles.shape[1]
         )
 
         # Variance spans the range of particles for every dimension.

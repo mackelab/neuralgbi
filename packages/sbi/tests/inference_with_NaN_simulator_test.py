@@ -64,8 +64,7 @@ def test_z_scoring_warning(snpe_method: type):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    ("method", "percent_nans"),
-    ((SNPE_C, 0.05), (SNL, 0.05), (SRE, 0.05)),
+    ("method", "percent_nans"), ((SNPE_C, 0.05), (SNL, 0.05), (SRE, 0.05))
 )
 def test_inference_with_nan_simulator(method: type, percent_nans: float):
 
@@ -195,9 +194,9 @@ def test_restricted_prior_log_prob(prior):
         y = torch.linspace(-range_, range_, resolution)
         X, Y = torch.meshgrid(x, y)
         xy = torch.stack([X, Y])
-        xy = torch.reshape(xy, (2, resolution**2)).T
+        xy = torch.reshape(xy, (2, resolution ** 2)).T
         dist_on_grid = torch.exp(distribution.log_prob(xy))
-        integral = torch.sum(dist_on_grid) / resolution**2 * (2 * range_) ** 2
+        integral = torch.sum(dist_on_grid) / resolution ** 2 * (2 * range_) ** 2
         return integral
 
     integal_restricted = integrate_grid(restricted_prior)

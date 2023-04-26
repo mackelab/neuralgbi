@@ -21,11 +21,7 @@ def tb_acf(writer, mcmc, site_name="parameters", num_samples=1000, maxlags=50):
         for p in range(samples.shape[-1]):
             fig = plt.figure()
             plt.gca().acorr(samples[c, :].squeeze()[:, p].numpy(), maxlags=maxlags)
-            writer.add_figure(
-                f"acf/chain {c+1}/parameter {p+1}",
-                fig,
-                close=True,
-            )
+            writer.add_figure(f"acf/chain {c+1}/parameter {p+1}", fig, close=True)
 
 
 def tb_posteriors(writer, mcmc, site_name="parameters", num_samples=1000):
@@ -41,9 +37,7 @@ def tb_marginals(writer, mcmc, site_name="parameters", num_samples=1000):
     for c in range(samples.shape[0]):
         for p in range(samples.shape[-1]):
             writer.add_histogram(
-                f"marginal/{site_name}/{p+1}",
-                samples[c, :].squeeze()[:, p],
-                c,
+                f"marginal/{site_name}/{p+1}", samples[c, :].squeeze()[:, p], c
             )
 
 

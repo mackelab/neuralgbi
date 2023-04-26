@@ -90,8 +90,7 @@ class SNPE_A(PosteriorEstimator):
         # continue. It's sneaky because we are using the object (self) as a namespace
         # to pass arguments between functions, and that's implicit state management.
         kwargs = utils.del_entries(
-            locals(),
-            entries=("self", "__class__", "num_components"),
+            locals(), entries=("self", "__class__", "num_components")
         )
         super().__init__(**kwargs)
 
@@ -102,7 +101,7 @@ class SNPE_A(PosteriorEstimator):
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
         calibration_kernel: Optional[Callable] = None,
         resume_training: bool = False,
@@ -213,8 +212,7 @@ class SNPE_A(PosteriorEstimator):
         return super().train(**kwargs)
 
     def correct_for_proposal(
-        self,
-        density_estimator: Optional[TorchModule] = None,
+        self, density_estimator: Optional[TorchModule] = None
     ) -> "SNPE_A_MDN":
         r"""Build mixture of Gaussians that approximates the posterior.
 
@@ -293,17 +291,12 @@ class SNPE_A(PosteriorEstimator):
             density_estimator=density_estimator
         )
         self._posterior = DirectPosterior(
-            posterior_estimator=wrapped_density_estimator,
-            prior=prior,
+            posterior_estimator=wrapped_density_estimator, prior=prior
         )
         return deepcopy(self._posterior)
 
     def _log_prob_proposal_posterior(
-        self,
-        theta: Tensor,
-        x: Tensor,
-        masks: Tensor,
-        proposal: Optional[Any],
+        self, theta: Tensor, x: Tensor, masks: Tensor, proposal: Optional[Any]
     ) -> Tensor:
         """Return the log-probability of the proposal posterior.
 

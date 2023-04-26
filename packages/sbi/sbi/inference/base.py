@@ -150,10 +150,7 @@ class NeuralInference(ABC):
             epoch_durations_sec=[],
         )
 
-    def get_simulations(
-        self,
-        starting_round: int = 0,
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+    def get_simulations(self, starting_round: int = 0) -> Tuple[Tensor, Tensor, Tensor]:
         r"""Returns all $\theta$, $x$, and prior_masks from rounds >= `starting_round`.
 
         If requested, do not return invalid data.
@@ -344,10 +341,7 @@ class NeuralInference(ABC):
                 "but network has not yet fully converged. Consider increasing it."
             )
 
-    def _summarize(
-        self,
-        round_: int,
-    ) -> None:
+    def _summarize(self, round_: int) -> None:
         """Update the summary_writer with statistics for a given round.
 
         During training several performance statistics are added to the summary, e.g.,
@@ -393,23 +387,17 @@ class NeuralInference(ABC):
         )
         for i, vlp in enumerate(self._summary["validation_log_probs"][offset:]):
             self._summary_writer.add_scalar(
-                tag="validation_log_probs",
-                scalar_value=vlp,
-                global_step=offset + i,
+                tag="validation_log_probs", scalar_value=vlp, global_step=offset + i
             )
 
         for i, tlp in enumerate(self._summary["training_log_probs"][offset:]):
             self._summary_writer.add_scalar(
-                tag="training_log_probs",
-                scalar_value=tlp,
-                global_step=offset + i,
+                tag="training_log_probs", scalar_value=tlp, global_step=offset + i
             )
 
         for i, eds in enumerate(self._summary["epoch_durations_sec"][offset:]):
             self._summary_writer.add_scalar(
-                tag="epoch_durations_sec",
-                scalar_value=eds,
-                global_step=offset + i,
+                tag="epoch_durations_sec", scalar_value=eds, global_step=offset + i
             )
 
         self._summary_writer.flush()

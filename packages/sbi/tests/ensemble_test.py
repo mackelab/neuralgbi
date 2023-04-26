@@ -17,14 +17,7 @@ from tests.test_utils import check_c2st, get_dkl_gaussian_prior
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "inference_method",
-    [
-        "SNLE_A",
-        "SNRE_A",
-        "SNPE_C",
-    ],
-)
+@pytest.mark.parametrize("inference_method", ["SNLE_A", "SNRE_A", "SNPE_C"])
 def test_c2st_posterior_ensemble_on_linearGaussian(inference_method):
     """Test whether NeuralPosteriorEnsemble infers well a simple example with available
     ground truth.

@@ -57,9 +57,7 @@ def test_c2st_slice_np_on_Gaussian(num_dim: int):
         return target_distribution.log_prob(torch.as_tensor(x, dtype=torch.float32))
 
     sampler = SliceSampler(
-        lp_f=lp_f,
-        x=np.zeros((num_dim,)).astype(np.float32),
-        tuning=warmup,
+        lp_f=lp_f, x=np.zeros((num_dim,)).astype(np.float32), tuning=warmup
     )
     warmup_samples = sampler.gen(warmup)
     assert warmup_samples.shape == (warmup, num_dim)
@@ -101,12 +99,7 @@ def test_c2st_slice_np_vectorized_on_Gaussian(num_dim: int, slice_sampler):
 
     sampler = slice_sampler(
         log_prob_fn=lp_f,
-        init_params=np.zeros(
-            (
-                num_chains,
-                num_dim,
-            )
-        ).astype(np.float32),
+        init_params=np.zeros((num_chains, num_dim)).astype(np.float32),
         tuning=warmup,
         thin=thin,
         num_chains=num_chains,
@@ -185,14 +178,7 @@ def test_c2st_slice_np_parallelized(vectorized: bool, num_workers: int):
 
 
 @pytest.mark.parametrize(
-    "method",
-    (
-        "nuts",
-        "hmc",
-        "slice",
-        "slice_np",
-        "slice_np_vectorized",
-    ),
+    "method", ("nuts", "hmc", "slice", "slice_np", "slice_np_vectorized")
 )
 @pytest.mark.parametrize("num_chains", (1, 2))
 def test_getting_inference_diagnostics(method, num_chains):
@@ -201,10 +187,7 @@ def test_getting_inference_diagnostics(method, num_chains):
     num_dim = 2
 
     # Use composed prior to test MultipleIndependent case.
-    prior = [
-        Uniform(low=-ones(1), high=ones(1)),
-        Uniform(low=-ones(1), high=ones(1)),
-    ]
+    prior = [Uniform(low=-ones(1), high=ones(1)), Uniform(low=-ones(1), high=ones(1))]
 
     simulator, prior = prepare_for_sbi(diagonal_linear_gaussian, prior)
     density_estimator = likelihood_nn("maf", num_transforms=3)

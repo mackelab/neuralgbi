@@ -96,10 +96,7 @@ def run_sbc(
             for thetas_batch, xs_batch in zip(thetas_batches, xs_batches):
                 sbc_outputs.append(
                     sbc_on_batch(
-                        thetas_batch,
-                        xs_batch,
-                        posterior,
-                        num_posterior_samples,
+                        thetas_batch, xs_batch, posterior, num_posterior_samples
                     )
                 )
                 pbar.update(sbc_batch_size)
@@ -234,11 +231,7 @@ def check_sbc(
     )
     c2st_scores_dap = check_prior_vs_dap(prior_samples, dap_samples)
 
-    return dict(
-        ks_pvals=ks_pvals,
-        c2st_ranks=c2st_ranks,
-        c2st_dap=c2st_scores_dap,
-    )
+    return dict(ks_pvals=ks_pvals, c2st_ranks=c2st_ranks, c2st_dap=c2st_scores_dap)
 
 
 def check_prior_vs_dap(prior_samples: Tensor, dap_samples: Tensor) -> Tensor:

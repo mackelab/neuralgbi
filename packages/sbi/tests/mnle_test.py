@@ -145,9 +145,7 @@ def test_mnle_accuracy(sampler):
         )
 
         check_c2st(
-            mnle_posterior_samples,
-            true_posterior_samples,
-            alg=f"MNLE with {sampler}",
+            mnle_posterior_samples, true_posterior_samples, alg=f"MNLE with {sampler}"
         )
 
 

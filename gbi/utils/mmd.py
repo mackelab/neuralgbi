@@ -12,17 +12,9 @@ def ground_truth_mmd(
     y_res: int = 100,
     scale: float = 0.01,
 ):
-    term1 = sample_based_mmd_marginal(
-        x,
-        x,
-        scale=scale,
-    )
+    term1 = sample_based_mmd_marginal(x, x, scale=scale)
     term2 = sample_integral_mixed_mmd_marginal(
-        x=x,
-        y_dist=dists_y,
-        y_limits=y_limits,
-        y_res=y_res,
-        scale=scale,
+        x=x, y_dist=dists_y, y_limits=y_limits, y_res=y_res, scale=scale
     )
     term3 = integral_based_mmd_marginal(
         x_dist=dists_y,
@@ -142,11 +134,7 @@ def sample_integral_mixed_mmd_marginal(
 
 
 def sample_integral_mixed_mmd_term(
-    x,
-    y_dist: Distribution,
-    y_limits: Tensor,
-    y_res: int = 100,
-    scale: float = 0.01,
+    x, y_dist: Distribution, y_limits: Tensor, y_res: int = 100, scale: float = 0.01
 ):
     y_range = torch.linspace(y_limits[0].item(), y_limits[1].item(), y_res).unsqueeze(1)
     y_repeat = y_range.repeat((x.shape[0], 1))

@@ -175,9 +175,7 @@ class Standardize(nn.Module):
 
 
 def standardizing_net(
-    batch_t: Tensor,
-    structured_dims: bool = False,
-    min_std: float = 1e-7,
+    batch_t: Tensor, structured_dims: bool = False, min_std: float = 1e-7
 ) -> nn.Module:
     """Builds standardizing network
 

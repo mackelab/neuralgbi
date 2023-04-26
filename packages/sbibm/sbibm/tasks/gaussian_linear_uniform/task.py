@@ -46,7 +46,7 @@ class GaussianLinearUniform(Task):
 
         self.simulator_params = {
             "precision_matrix": torch.inverse(
-                simulator_scale * torch.eye(self.dim_parameters),
+                simulator_scale * torch.eye(self.dim_parameters)
             )
         }
 
@@ -109,8 +109,7 @@ class GaussianLinearUniform(Task):
         reference_posterior_samples = []
 
         sampling_dist = pdist.MultivariateNormal(
-            loc=observation,
-            precision_matrix=self.simulator_params["precision_matrix"],
+            loc=observation, precision_matrix=self.simulator_params["precision_matrix"]
         )
 
         # Reject samples outside of prior bounds

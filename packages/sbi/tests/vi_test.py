@@ -201,12 +201,7 @@ def test_deepcopy_support(q: str):
     potential_fn = FakePotential(prior=prior)
     theta_transform = torch_tf.identity_transform
 
-    posterior = VIPosterior(
-        potential_fn,
-        prior,
-        theta_transform=theta_transform,
-        q=q,
-    )
+    posterior = VIPosterior(potential_fn, prior, theta_transform=theta_transform, q=q)
     posterior_copy = deepcopy(posterior)
     posterior.set_default_x(torch.tensor(np.zeros((num_dim,)).astype(np.float32)))
     assert posterior._x != posterior_copy._x, "Mhh, something with the copy is strange"
@@ -234,10 +229,7 @@ def test_vi_posterior_inferface():
     potential_fn = FakePotential(prior=prior)
     theta_transform = torch_tf.identity_transform
 
-    posterior = VIPosterior(
-        potential_fn,
-        theta_transform=theta_transform,
-    )
+    posterior = VIPosterior(potential_fn, theta_transform=theta_transform)
     posterior.set_default_x(torch.zeros((1, num_dim)))
 
     posterior2 = VIPosterior(potential_fn)
@@ -332,7 +324,4 @@ def test_vi_with_multiple_independent_prior():
     posterior.set_default_x(x[0])
     posterior.train()
 
-    posterior.sample(
-        sample_shape=(10,),
-        show_progress_bars=False,
-    )
+    posterior.sample(sample_shape=(10,), show_progress_bars=False)

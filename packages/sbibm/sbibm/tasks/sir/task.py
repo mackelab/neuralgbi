@@ -120,10 +120,7 @@ class SIR(Task):
 
         return prior
 
-    def get_simulator(
-        self,
-        max_calls: Optional[int] = None,
-    ) -> Simulator:
+    def get_simulator(self, max_calls: Optional[int] = None) -> Simulator:
         """Get function returning samples from simulator given parameters
 
         Args:

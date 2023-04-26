@@ -30,8 +30,8 @@ def compute_corrcoeff(probs: Tensor, limits: Tensor):
     covariance = _compute_covariance(normalized_probs, limits)
 
     marginal_x, marginal_y = _calc_marginals(normalized_probs, limits)
-    variance_x = _compute_covariance(marginal_x, limits[0], lambda x: x**2)
-    variance_y = _compute_covariance(marginal_y, limits[1], lambda x: x**2)
+    variance_x = _compute_covariance(marginal_x, limits[0], lambda x: x ** 2)
+    variance_y = _compute_covariance(marginal_y, limits[1], lambda x: x ** 2)
 
     return covariance / torch.sqrt(variance_x * variance_y)
 
@@ -198,11 +198,7 @@ def extract_and_transform_mog(
 
 
 def condition_mog(
-    condition: Tensor,
-    dims: List[int],
-    logits: Tensor,
-    means: Tensor,
-    precfs: Tensor,
+    condition: Tensor, dims: List[int], logits: Tensor, means: Tensor, precfs: Tensor
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
     """Finds the conditional distribution p(X|Y) for a MoG.
 

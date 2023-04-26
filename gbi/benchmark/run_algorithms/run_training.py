@@ -58,8 +58,8 @@ def train_NPE(theta, x, task, config, task_name):
     else:
         embedding_net = nn.Identity()
 
-    if (config.sigmoid_theta) and (task_name != 'linear_gaussian'):
-        # Apply sigmoid on theta to keep into prior range. 
+    if (config.sigmoid_theta) and (task_name != "linear_gaussian"):
+        # Apply sigmoid on theta to keep into prior range.
         # Do not apply to linear_gaussian because prior is unbounded. Should probably just check.
         net = get_nn_models.posterior_nn(
             model=config.density_estimator,

@@ -60,10 +60,7 @@ class CNNEmbedding(nn.Module):
             SNLE,
             marks=pytest.mark.xfail(reason="SNLE cannot handle multiD x."),
         ),
-        pytest.param(
-            CNNEmbedding,
-            SNRE,
-        ),
+        pytest.param(CNNEmbedding, SNRE),
         pytest.param(CNNEmbedding, SNPE),
     ),
 )
@@ -80,10 +77,7 @@ def test_inference_with_2d_x(embedding, method):
     theta_o = torch.ones(1, num_dim)
 
     if method == SNPE:
-        net_provider = utils.posterior_nn(
-            model="mdn",
-            embedding_net=embedding(),
-        )
+        net_provider = utils.posterior_nn(model="mdn", embedding_net=embedding())
         num_trials = 1
     elif method == SNLE:
         net_provider = utils.likelihood_nn(model="mdn", embedding_net=embedding())

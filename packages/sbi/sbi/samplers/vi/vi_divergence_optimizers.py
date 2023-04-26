@@ -356,9 +356,7 @@ class DivergenceOptimizer(ABC):
         self._scheduler = sched_type(self._optimizer, **scheduler_kwargs)
 
 
-def register_VI_method(
-    name: Optional[str] = None,
-) -> Callable:
+def register_VI_method(name: Optional[str] = None,) -> Callable:
     """Registers a new VI method, by adding a new Divergence Optimizer class.
 
     Args:
@@ -548,7 +546,7 @@ class IWElboOptimizer(ElboOptimizer):
             logweights - torch.logsumexp(logweights, -1).unsqueeze(-1)
         )
         if self.dreg:
-            normalized_weights = normalized_weights**2
+            normalized_weights = normalized_weights ** 2
         return normalized_weights
 
 
@@ -716,5 +714,5 @@ class RenyiDivergenceOptimizer(ElboOptimizer):
         normed_logweights = logweights - mean_log_weights
         weights = normed_logweights.exp()
         if self.dreg:
-            weights = weights**2
+            weights = weights ** 2
         return weights, mean_log_weights

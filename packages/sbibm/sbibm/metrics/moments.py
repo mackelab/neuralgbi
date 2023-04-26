@@ -2,8 +2,7 @@ import torch
 
 
 def posterior_mean_error(
-    samples: torch.Tensor,
-    reference_posterior_samples: torch.Tensor,
+    samples: torch.Tensor, reference_posterior_samples: torch.Tensor
 ) -> torch.Tensor:
     """Return absolute error between posterior means normalized by true std.
     Args:
@@ -22,8 +21,7 @@ def posterior_mean_error(
 
 
 def posterior_variance_ratio(
-    samples: torch.Tensor,
-    reference_posterior_samples: torch.Tensor,
+    samples: torch.Tensor, reference_posterior_samples: torch.Tensor
 ) -> torch.Tensor:
     """Return ratio of approximate and true variance, averaged over dimensions.
     Args:

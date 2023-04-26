@@ -28,8 +28,7 @@ def test_transforms(prior, target_transform):
 
     if isinstance(prior, UserNumpyUniform):
         prior, *_ = process_prior(
-            prior,
-            dict(lower_bound=torch.zeros(2), upper_bound=torch.ones(2)),
+            prior, dict(lower_bound=torch.zeros(2), upper_bound=torch.ones(2))
         )
 
     transform = mcmc_transform(prior)

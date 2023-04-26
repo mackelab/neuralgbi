@@ -42,9 +42,9 @@ class LinearGaussian:
         predicted_mean = self.likelihood_shift + theta
         expected_value_of_d = (
             self.likelihood_cov.diagonal()
-            + predicted_mean**2
+            + predicted_mean ** 2
             - 2 * self.x_o * predicted_mean
-            + self.x_o**2
+            + self.x_o ** 2
         ).mean(
             dim=1
         )  # Sum over dimensions of the Gaussian

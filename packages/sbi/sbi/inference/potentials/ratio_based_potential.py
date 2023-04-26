@@ -15,9 +15,7 @@ from sbi.utils.torchutils import atleast_2d
 
 
 def ratio_estimator_based_potential(
-    ratio_estimator: nn.Module,
-    prior: Distribution,
-    x_o: Optional[Tensor],
+    ratio_estimator: nn.Module, prior: Distribution, x_o: Optional[Tensor]
 ) -> Tuple[Callable, TorchTransform]:
     r"""Returns the potential for ratio-based methods.
 

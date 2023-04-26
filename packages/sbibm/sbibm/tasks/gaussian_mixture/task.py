@@ -11,11 +11,7 @@ from sbibm.tasks.task import Task
 
 
 class GaussianMixture(Task):
-    def __init__(
-        self,
-        dim: int = 2,
-        prior_bound: float = 10.0,
-    ):
+    def __init__(self, dim: int = 2, prior_bound: float = 10.0):
         """Gaussian Mixture.
 
         Inference of mean under uniform prior.

@@ -177,9 +177,7 @@ class Task:
         )
 
         log_prob_fn, _ = get_log_prob_fn(
-            conditioned_model,
-            implementation=implementation,
-            **kwargs,
+            conditioned_model, implementation=implementation, **kwargs
         )
 
         def log_prob_pyro(parameters):
@@ -239,9 +237,7 @@ class Task:
             posterior=posterior,
         )
         log_prob_grad_fn, _ = get_log_prob_grad_fn(
-            conditioned_model,
-            implementation=implementation,
-            **kwargs,
+            conditioned_model, implementation=implementation, **kwargs
         )
 
         def log_prob_grad_pyro(parameters):
@@ -293,8 +289,7 @@ class Task:
         )
 
         _, transforms = get_log_prob_fn(
-            conditioned_model,
-            automatic_transform_enabled=automatic_transforms_enabled,
+            conditioned_model, automatic_transform_enabled=automatic_transforms_enabled
         )
 
         return transforms
@@ -450,8 +445,7 @@ class Task:
                 num_unique = torch.unique(reference_posterior_samples, dim=0).shape[0]
                 assert num_unique == self.num_reference_posterior_samples
                 self._save_reference_posterior_samples(
-                    num_observation,
-                    reference_posterior_samples,
+                    num_observation, reference_posterior_samples
                 )
 
         Parallel(n_jobs=n_jobs, verbose=50, backend="loky")(

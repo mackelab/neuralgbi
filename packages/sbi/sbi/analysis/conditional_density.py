@@ -87,7 +87,7 @@ def eval_conditional_density(
 
         log_probs_on_grid = density.log_prob(repeated_condition)
     else:
-        repeated_condition = condition.repeat(resolution**2, 1)
+        repeated_condition = condition.repeat(resolution ** 2, 1)
         repeated_condition[:, dim1] = theta_grid_dim1.repeat(resolution)
         repeated_condition[:, dim2] = torch.repeat_interleave(
             theta_grid_dim2, resolution
@@ -186,11 +186,7 @@ def conditional_corrcoeff(
 
 class ConditionedMDN:
     def __init__(
-        self,
-        net: nn.Module,
-        x_o: Tensor,
-        condition: Tensor,
-        dims_to_sample: List[int],
+        self, net: nn.Module, x_o: Tensor, condition: Tensor, dims_to_sample: List[int]
     ) -> None:
         r"""Class that can sample and evaluate a conditional mixture-of-gaussians.
 

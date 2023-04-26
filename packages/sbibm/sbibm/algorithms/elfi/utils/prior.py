@@ -30,13 +30,7 @@ def build_prior(task: Task, model: elfi.ElfiModel):
             loc = prior_params["m"][dim]
             scale = np.sqrt(prior_params["C"][dim, dim])
 
-            elfi.Prior(
-                "norm",
-                loc,
-                scale,
-                model=model,
-                name=f"parameter_{dim}",
-            )
+            elfi.Prior("norm", loc, scale, model=model, name=f"parameter_{dim}")
 
             bounds[f"parameter_{dim}"] = (
                 prior_params["m"][dim] - 3.0 * np.sqrt(prior_params["C"][dim, dim]),
@@ -51,13 +45,7 @@ def build_prior(task: Task, model: elfi.ElfiModel):
             loc = prior_params["low"][dim]
             scale = prior_params["high"][dim] - loc
 
-            elfi.Prior(
-                "uniform",
-                loc,
-                scale,
-                model=model,
-                name=f"parameter_{dim}",
-            )
+            elfi.Prior("uniform", loc, scale, model=model, name=f"parameter_{dim}")
 
             bounds[f"parameter_{dim}"] = (
                 prior_params["low"][dim],

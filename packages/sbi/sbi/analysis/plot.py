@@ -221,11 +221,7 @@ def get_diag_func(samples, limits, opts, **kwargs):
                         limits[row, 0], limits[row, 1], opts["kde_diag"]["bins"]
                     )
                     ys = density(xs)
-                    plt.plot(
-                        xs,
-                        ys,
-                        color=opts["samples_colors"][n],
-                    )
+                    plt.plot(xs, ys, color=opts["samples_colors"][n])
                 elif "upper" in opts.keys() and opts["upper"][n] == "scatter":
                     for single_sample in v:
                         plt.axvline(
@@ -261,11 +257,7 @@ def get_conditional_diag_func(opts, limits, eps_margins, resolution):
             .numpy()
         )
         plt.plot(
-            np.linspace(
-                limits[row, 0],
-                limits[row, 1],
-                resolution,
-            ),
+            np.linspace(limits[row, 0], limits[row, 1], resolution),
             p_vector,
             c=opts["samples_colors"][0],
         )
@@ -359,35 +351,20 @@ def pairplot(
                     plt.imshow(
                         hist.T,
                         origin="lower",
-                        extent=(
-                            xedges[0],
-                            xedges[-1],
-                            yedges[0],
-                            yedges[-1],
-                        ),
+                        extent=(xedges[0], xedges[-1], yedges[0], yedges[-1]),
                         aspect="auto",
                     )
 
-                elif opts["upper"][n] in [
-                    "kde",
-                    "kde2d",
-                    "contour",
-                    "contourf",
-                ]:
+                elif opts["upper"][n] in ["kde", "kde2d", "contour", "contourf"]:
                     density = gaussian_kde(
-                        v[:, [col, row]].T,
-                        bw_method=opts["kde_offdiag"]["bw_method"],
+                        v[:, [col, row]].T, bw_method=opts["kde_offdiag"]["bw_method"]
                     )
                     X, Y = np.meshgrid(
                         np.linspace(
-                            limits[col][0],
-                            limits[col][1],
-                            opts["kde_offdiag"]["bins"],
+                            limits[col][0], limits[col][1], opts["kde_offdiag"]["bins"]
                         ),
                         np.linspace(
-                            limits[row][0],
-                            limits[row][1],
-                            opts["kde_offdiag"]["bins"],
+                            limits[row][0], limits[row][1], opts["kde_offdiag"]["bins"]
                         ),
                     )
                     positions = np.vstack([X.ravel(), Y.ravel()])
@@ -674,12 +651,7 @@ def conditional_pairplot(
         plt.imshow(
             p_image.T,
             origin="lower",
-            extent=(
-                limits[col, 0],
-                limits[col, 1],
-                limits[row, 0],
-                limits[row, 1],
-            ),
+            extent=(limits[col, 0], limits[col, 1], limits[row, 0], limits[row, 1]),
             aspect="auto",
         )
 
@@ -858,10 +830,7 @@ def _arrange_plots(
                     _format_axis(ax, xhide=True, yhide=True)
             if opts["tick_labels"] is not None:
                 ax.set_xticklabels(
-                    (
-                        str(opts["tick_labels"][col][0]),
-                        str(opts["tick_labels"][col][1]),
-                    )
+                    (str(opts["tick_labels"][col][0]), str(opts["tick_labels"][col][1]))
                 )
 
             # Diagonals
@@ -880,11 +849,7 @@ def _arrange_plots(
 
             # Off-diagonals
             else:
-                upper_func(
-                    row=row,
-                    col=col,
-                    limits=limits,
-                )
+                upper_func(row=row, col=col, limits=limits)
 
                 if len(points) > 0:
 
@@ -943,7 +908,7 @@ def _get_default_opts():
         "hist_offdiag": {
             # 'edgecolor': 'none',
             # 'linewidth': 0.0,
-            "bins": 50,
+            "bins": 50
         },
         # options for kde
         "kde_diag": {"bw_method": "scott", "bins": 50, "color": "black"},
@@ -951,29 +916,18 @@ def _get_default_opts():
         # options for contour
         "contour_offdiag": {"levels": [0.68], "percentile": True},
         # options for scatter
-        "scatter_offdiag": {
-            "alpha": 0.5,
-            "edgecolor": "none",
-            "rasterized": False,
-        },
+        "scatter_offdiag": {"alpha": 0.5, "edgecolor": "none", "rasterized": False},
         "scatter_diag": {},
         # options for plot
         "plot_offdiag": {},
         # formatting points (scale, markers)
         "points_diag": {},
-        "points_offdiag": {
-            "marker": ".",
-            "markersize": 20,
-        },
+        "points_offdiag": {"marker": ".", "markersize": 20},
         # other options
         "fig_bg_colors": {"upper": None, "diag": None, "lower": None},
-        "fig_subplots_adjust": {
-            "top": 0.9,
-        },
+        "fig_subplots_adjust": {"top": 0.9},
         "subplots": {},
-        "despine": {
-            "offset": 5,
-        },
+        "despine": {"offset": 5},
         "title_format": {"fontsize": 16},
     }
 
@@ -1245,13 +1199,7 @@ def _plot_ranks_as_hist(
         legend_kwargs: kwargs for the legend.
     """
     xlim_offset = int(num_posterior_samples * xlim_offset_factor)
-    plt.hist(
-        ranks,
-        bins=num_bins,
-        label=ranks_label,
-        color=color,
-        alpha=alpha,
-    )
+    plt.hist(ranks, bins=num_bins, label=ranks_label, color=color, alpha=alpha)
 
     if show_ylabel:
         plt.ylabel("counts")

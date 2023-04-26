@@ -145,9 +145,7 @@ def run(
 
     if save_summary:
         log.info("Saving smcabc summary to csv.")
-        pd.DataFrame.from_dict(
-            summary,
-        ).to_csv("summary.csv", index=False)
+        pd.DataFrame.from_dict(summary).to_csv("summary.csv", index=False)
 
     assert simulator.num_simulations == num_simulations
 

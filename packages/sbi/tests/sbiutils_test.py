@@ -191,7 +191,7 @@ def test_average_cond_coeff_matrix():
         limits=torch.tensor([[-60.0, 60.0], [-20, 20], [-7, 7]]),
         resolution=500,
     )
-    corr_dim12 = torch.sqrt(torch.tensor(30.0**2 / 100.0 / 10.0))
+    corr_dim12 = torch.sqrt(torch.tensor(30.0 ** 2 / 100.0 / 10.0))
     gt_matrix = torch.tensor(
         [[1.0, corr_dim12, 0.0], [corr_dim12, 1.0, 0.0], [0.0, 0.0, 1.0]]
     )
@@ -236,7 +236,7 @@ def test_gaussian_transforms(snpe_method: str, plot_results: bool = False):
     theta_range = torch.linspace(-bound, bound, 100)
     theta1_grid, theta2_grid = torch.meshgrid(theta_range, theta_range)
     theta_grid = torch.stack([theta1_grid, theta2_grid])
-    theta_grid_flat = torch.reshape(theta_grid, (2, 100**2))
+    theta_grid_flat = torch.reshape(theta_grid, (2, 100 ** 2))
 
     # Generate two MoGs.
     means1 = torch.tensor([[2.0, 2.0], [-2.0, -2.0]])
@@ -366,14 +366,8 @@ def test_gaussian_transforms(snpe_method: str, plot_results: bool = False):
         IndependentTransform(identity_transform, reinterpreted_batch_ndims=1),
     ),
 )
-@pytest.mark.parametrize(
-    "sample_weights",
-    (True, False),
-)
-@pytest.mark.parametrize(
-    "bandwidth",
-    ("cv", "scott"),
-)
+@pytest.mark.parametrize("sample_weights", (True, False))
+@pytest.mark.parametrize("bandwidth", ("cv", "scott"))
 def test_kde(bandwidth, transform, sample_weights):
 
     num_dim = 3
@@ -428,10 +422,7 @@ def test_z_scoring_structured(z_x, z_theta, builder):
     else:
         for model in ["linear", "mlp", "resnet"]:
             net = builder(
-                model,
-                z_score_theta=z_theta,
-                z_score_x=z_x,
-                hidden_features=2,
+                model, z_score_theta=z_theta, z_score_x=z_x, hidden_features=2
             )
             assert net(t_batch, t_batch)
 

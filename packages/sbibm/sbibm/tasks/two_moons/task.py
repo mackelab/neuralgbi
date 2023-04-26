@@ -131,10 +131,7 @@ class TwoMoons(Task):
         return x - torch.cat((-torch.abs(z0), z1), dim=1)
 
     def _likelihood(
-        self,
-        parameters: torch.Tensor,
-        data: torch.Tensor,
-        log: bool = True,
+        self, parameters: torch.Tensor, data: torch.Tensor, log: bool = True
     ) -> torch.Tensor:
         if parameters.ndim == 1:
             parameters = parameters.reshape(1, -1)
@@ -160,12 +157,12 @@ class TwoMoons(Task):
 
         return L if log else torch.exp(L)
 
-    def _get_transforms(
-        self,
-        *args,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        return {"parameters": torch.distributions.transforms.IndependentTransform(torch.distributions.transforms.identity_transform, 1) }
+    def _get_transforms(self, *args, **kwargs: Any) -> Dict[str, Any]:
+        return {
+            "parameters": torch.distributions.transforms.IndependentTransform(
+                torch.distributions.transforms.identity_transform, 1
+            )
+        }
 
     def _get_log_prob_fn(
         self,

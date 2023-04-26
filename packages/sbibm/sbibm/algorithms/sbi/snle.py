@@ -100,14 +100,15 @@ def run(
         z_score_theta=z_score_theta,
     )
     inference_method = inference.SNLE_A(
-        density_estimator=density_estimator_fun,
-        prior=prior,
+        density_estimator=density_estimator_fun, prior=prior
     )
 
     posteriors = []
     proposal = prior
     mcmc_parameters["warmup_steps"] = 25
-    mcmc_parameters["enable_transform"] = False  # NOTE: Disable `sbi` auto-transforms, since `sbibm` does its own
+    mcmc_parameters[
+        "enable_transform"
+    ] = False  # NOTE: Disable `sbi` auto-transforms, since `sbibm` does its own
 
     for r in range(num_rounds):
         theta, x = inference.simulate_for_sbi(

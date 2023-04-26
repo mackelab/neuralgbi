@@ -14,10 +14,7 @@ def mse_dist(xs: Tensor, x_o: Tensor) -> Tensor:
 
 
 def build_generalized_log_likelihood(
-    emulator: nn.Module,
-    x_o: Tensor,
-    dist_func: Callable,
-    n_per_theta: int = 1_000,
+    emulator: nn.Module, x_o: Tensor, dist_func: Callable, n_per_theta: int = 1_000
 ):
     def generalized_loglikelihood(thetas: Tensor):
         thetas = atleast_2d(thetas)

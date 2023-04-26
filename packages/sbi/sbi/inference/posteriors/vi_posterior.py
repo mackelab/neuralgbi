@@ -142,10 +142,7 @@ class VIPosterior(NeuralPosterior):
         return self._q
 
     @q.setter
-    def q(
-        self,
-        q: Union[str, Distribution, "VIPosterior", Callable],
-    ) -> None:
+    def q(self, q: Union[str, Distribution, "VIPosterior", Callable]) -> None:
         """Sets the variational distribution. If the distribution does not admit access
         through `parameters` and `modules` function, please use `set_q` if you want to
         explicitly specify the parameters and modules.
@@ -224,9 +221,7 @@ class VIPosterior(NeuralPosterior):
                 self._q_build_fn = q
 
             q = self._q_build_fn(
-                self._prior.event_shape,
-                self.link_transform,
-                device=self._device,
+                self._prior.event_shape, self.link_transform, device=self._device
             )
             make_object_deepcopy_compatible(q)
             self._trained_on = None
@@ -271,10 +266,7 @@ class VIPosterior(NeuralPosterior):
         return self
 
     def sample(
-        self,
-        sample_shape: Shape = torch.Size(),
-        x: Optional[Tensor] = None,
-        **kwargs,
+        self, sample_shape: Shape = torch.Size(), x: Optional[Tensor] = None, **kwargs
     ) -> Tensor:
         """Samples from the variational posterior distribution.
 
@@ -294,10 +286,7 @@ class VIPosterior(NeuralPosterior):
         return samples.reshape((*sample_shape, samples.shape[-1]))
 
     def log_prob(
-        self,
-        theta: Tensor,
-        x: Optional[Tensor] = None,
-        track_gradients: bool = False,
+        self, theta: Tensor, x: Optional[Tensor] = None, track_gradients: bool = False
     ) -> Tensor:
         r"""Returns the log-probability of theta under the variational posterior.
 

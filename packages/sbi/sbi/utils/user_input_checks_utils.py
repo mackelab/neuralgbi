@@ -86,15 +86,13 @@ class CustomPriorWrapper(Distribution):
     @property
     def mean(self):
         return torch.as_tensor(
-            self.custom_prior.mean,
-            dtype=self.return_type,  # type: ignore
+            self.custom_prior.mean, dtype=self.return_type  # type: ignore
         )
 
     @property
     def variance(self):
         return torch.as_tensor(
-            self.custom_prior.variance,
-            dtype=self.return_type,  # type: ignore
+            self.custom_prior.variance, dtype=self.return_type  # type: ignore
         )
 
 
@@ -126,8 +124,7 @@ class ScipyPytorchWrapper(Distribution):
 
     def log_prob(self, value) -> Tensor:
         return torch.as_tensor(
-            self.prior_scipy.logpdf(x=value),
-            dtype=self.return_type,  # type: ignore
+            self.prior_scipy.logpdf(x=value), dtype=self.return_type  # type: ignore
         )
 
     def sample(self, sample_shape=torch.Size()) -> Tensor:
@@ -177,28 +174,24 @@ class PytorchReturnTypeWrapper(Distribution):
 
     def log_prob(self, value) -> Tensor:
         return torch.as_tensor(
-            self.prior.log_prob(value),
-            dtype=self.return_type,  # type: ignore
+            self.prior.log_prob(value), dtype=self.return_type  # type: ignore
         )
 
     def sample(self, sample_shape=torch.Size()) -> Tensor:
         return torch.as_tensor(
-            self.prior.sample(sample_shape),
-            dtype=self.return_type,  # type: ignore
+            self.prior.sample(sample_shape), dtype=self.return_type  # type: ignore
         )
 
     @property
     def mean(self):
         return torch.as_tensor(
-            self.prior.mean,
-            dtype=self.return_type,  # type: ignore
+            self.prior.mean, dtype=self.return_type  # type: ignore
         )
 
     @property
     def variance(self):
         return torch.as_tensor(
-            self.prior.variance,
-            dtype=self.return_type,  # type: ignore
+            self.prior.variance, dtype=self.return_type  # type: ignore
         )
 
     @property
@@ -396,8 +389,7 @@ def build_support(
         num_dimensions = lower_bound.numel()  # type: ignore
         if num_dimensions > 1:
             support = constraints._IndependentConstraint(
-                constraints.greater_than(lower_bound),
-                1,
+                constraints.greater_than(lower_bound), 1
             )
         else:
             support = constraints.greater_than(lower_bound)
@@ -406,8 +398,7 @@ def build_support(
         num_dimensions = upper_bound.numel()
         if num_dimensions > 1:
             support = constraints._IndependentConstraint(
-                constraints.less_than(upper_bound),
-                1,
+                constraints.less_than(upper_bound), 1
             )
         else:
             support = constraints.less_than(upper_bound)
@@ -420,8 +411,7 @@ def build_support(
         ), "There must be an equal number of independent bounds."
         if num_dimensions > 1:
             support = constraints._IndependentConstraint(
-                constraints.interval(lower_bound, upper_bound),
-                1,
+                constraints.interval(lower_bound, upper_bound), 1
             )
         else:
             support = constraints.interval(lower_bound, upper_bound)

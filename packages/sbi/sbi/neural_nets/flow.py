@@ -287,9 +287,7 @@ def build_nsf(
         # Add LU transform only for high D x. Permutation makes sense only for more than
         # one feature.
         if x_numel > 1:
-            block.append(
-                transforms.LULinear(x_numel, identity_init=True),
-            )
+            block.append(transforms.LULinear(x_numel, identity_init=True))
         transform_list += block
 
     z_score_x_bool, structured_x = z_score_parser(z_score_x)

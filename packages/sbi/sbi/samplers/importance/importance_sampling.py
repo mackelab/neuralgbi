@@ -6,9 +6,7 @@ from torch import Tensor
 
 
 def importance_sample(
-    potential_fn,
-    proposal,
-    num_samples: int = 1,
+    potential_fn, proposal, num_samples: int = 1
 ) -> Tuple[Tensor, Tensor]:
     """Returns samples from proposal and log(importance weights).
 

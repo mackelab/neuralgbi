@@ -209,8 +209,11 @@ def plot_prob_reject(
     plt.title(title)
     plt.grid()
     if return_plot_values:
-        return results, PlotValues(
-            xvalues=xvalues, methods=plotted_methods, plot_matrix=mean_rejs.T
+        return (
+            results,
+            PlotValues(
+                xvalues=xvalues, methods=plotted_methods, plot_matrix=mean_rejs.T
+            ),
         )
     else:
         return results

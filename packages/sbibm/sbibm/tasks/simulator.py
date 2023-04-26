@@ -8,10 +8,7 @@ from sbibm.utils.exceptions import SimulationBudgetExceeded
 
 class Simulator:
     def __init__(
-        self,
-        task: Task,
-        simulator: Callable,
-        max_calls: Optional[int] = None,
+        self, task: Task, simulator: Callable, max_calls: Optional[int] = None
     ):
         """Simulator
 

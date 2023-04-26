@@ -11,10 +11,7 @@ from sbibm.metrics.c2st import c2st
     "task_name,num_observation",
     [
         (task_name, num_observation)
-        for task_name in [
-            "gaussian_linear",
-            "gaussian_linear_uniform",
-        ]
+        for task_name in ["gaussian_linear", "gaussian_linear_uniform"]
         for num_observation in [1, 3]
     ],
 )

@@ -8,10 +8,7 @@ from sbibm.algorithms.sbi.sl import run as run_sl
 @pytest.mark.parametrize("task_name", ("gaussian_linear",))
 @pytest.mark.parametrize("run_method", (run_sl,))
 def test_run_posterior_interface(
-    task_name,
-    run_method,
-    num_simulations=100,
-    num_samples=5,
+    task_name, run_method, num_simulations=100, num_samples=5
 ):
     task = sbibm.get_task(task_name)
 

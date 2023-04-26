@@ -21,14 +21,7 @@ from sbi.simulators.linear_gaussian import diagonal_linear_gaussian
 
 
 @pytest.mark.parametrize(
-    "sampling_method",
-    (
-        "slice_np",
-        "slice_np_vectorized",
-        "slice",
-        "nuts",
-        "hmc",
-    ),
+    "sampling_method", ("slice_np", "slice_np_vectorized", "slice", "nuts", "hmc")
 )
 def test_api_posterior_sampler_set(sampling_method: str, set_seed):
     """Runs SNL and checks that posterior_sampler is correctly set.
@@ -65,11 +58,7 @@ def test_api_posterior_sampler_set(sampling_method: str, set_seed):
     posterior.sample(
         sample_shape=(num_samples, num_chains),
         x=x_o,
-        mcmc_parameters={
-            "thin": 3,
-            "num_chains": num_chains,
-            "init_strategy": "prior",
-        },
+        mcmc_parameters={"thin": 3, "num_chains": num_chains, "init_strategy": "prior"},
     )
 
     if sampling_method in ["slice", "hmc", "nuts"]:

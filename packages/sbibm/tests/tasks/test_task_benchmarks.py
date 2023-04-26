@@ -16,8 +16,7 @@ pyro.util.set_rng_seed(47)
 
 
 @pytest.mark.parametrize(
-    "task_name",
-    [tn for tn in get_available_tasks() if not re.search("lotka|sir", tn)],
+    "task_name", [tn for tn in get_available_tasks() if not re.search("lotka|sir", tn)]
 )
 def test_benchmark_metrics_selfobserved(task_name):
 

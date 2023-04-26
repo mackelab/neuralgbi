@@ -16,9 +16,7 @@ from sbi.utils.torchutils import atleast_2d
 
 
 def likelihood_estimator_based_potential(
-    likelihood_estimator: nn.Module,
-    prior: Distribution,
-    x_o: Optional[Tensor],
+    likelihood_estimator: nn.Module, prior: Distribution, x_o: Optional[Tensor]
 ) -> Tuple[Callable, TorchTransform]:
     r"""Returns potential $\log(p(x_o|\theta)p(\theta))$ for likelihood-based methods.
 
@@ -189,8 +187,7 @@ class MixedLikelihoodBasedPotential(LikelihoodBasedPotential):
             # this optimizes the evaluation of the discrete data part.
             # TODO: how to fix pyright issues?
             log_likelihood_trial_batch = self.likelihood_estimator.log_prob_iid(
-                x=self.x_o,
-                theta=theta.to(self.device),
+                x=self.x_o, theta=theta.to(self.device)
             )  # type: ignore
             # Reshape to (x-trials x parameters), sum over trial-log likelihoods.
             log_likelihood_trial_sum = log_likelihood_trial_batch.reshape(

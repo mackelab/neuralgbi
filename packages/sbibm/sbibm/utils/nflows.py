@@ -256,10 +256,7 @@ def train_flow(
 
     # Each run also has a dictionary of summary statistics which are populated
     # over the course of training.
-    summary = {
-        "epochs": [],
-        "best-validation-log-probs": [],
-    }
+    summary = {"epochs": [], "best-validation-log-probs": []}
 
     epochs = 0
     converged = False

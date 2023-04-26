@@ -10,7 +10,7 @@ from torch.distributions import Distribution
 from sbi.utils.torchutils import atleast_2d
 from sbi.inference.potentials.base_potential import BasePotential
 from sbi.neural_nets.embedding_nets import PermutationInvariantEmbedding, FCEmbedding
-
+from time import time
 from pyknos.nflows.nn import nets
 
 
@@ -105,7 +105,9 @@ class GBInference:
         while epoch <= max_n_epochs and not self._check_convergence(
             epoch, stop_after_counter_reaches
         ):
+            time_start = time()
             # Randomly sample one x_target for each theta for each epoch, without replacement.
+            #   TO DO: sample multiple x_targets for each theta for each epoch
             idx_x_targets_epoch = torch.ones((len(self.x_target),)).multinomial(
                 len(train_set.indices), replacement=False
             )
@@ -147,7 +149,10 @@ class GBInference:
 
             # Print validation loss
             if epoch % print_every_n == 0:
-                print(f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}")
+                print(
+                    f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}, {(time()-time_start)/print_every_n:.4f} seconds per epoch."
+                )
+                time_start = time()
 
             epoch += 1
 
@@ -165,7 +170,7 @@ class GBInference:
         return deepcopy(self.distance_net)
 
     def predict_distance(self, theta, x):
-        # Convenience function that does fixes the shape of x.        
+        # Convenience function that does fixes the shape of x.
         # Expands to have the same batch size as theta, in case x is [1, n_dim].
         if theta.shape[0] != x.shape[0]:
             if len(x.shape) == 2:
@@ -242,11 +247,27 @@ class GBInference:
     def _precompute_distance(self):
         """Pre-compute the distances of all pairs of x and x_target."""
         self.distance_precomputed = []
+        t_start = time()
+        print("Pre-computing distances...", end=" ")
         for x_t in self.x_target:
             self.distance_precomputed.append(
-                self.distance_func(self.x.unsqueeze(1), x_t).unsqueeze(1)
+                self.compute_distance(self.x, x_t).unsqueeze(1)
             )
+            # self.distance_precomputed.append(
+            #     self.distance_func(self.x.unsqueeze(1), x_t).unsqueeze(1)
+            # )
         self.distance_precomputed = torch.hstack(self.distance_precomputed)
+        print(f"finished in {time()-t_start} seconds.")
+
+    def compute_distance(self, x: Tensor, x_target: Tensor):
+        """Compute distance between x and x_target."""
+        # x_target should have leading dim of 1 or same as x.
+        assert (
+            x_target.shape[0] == 1
+            or x_target.shape[0] == x.shape[0]
+            or len(x_target.shape) == len(x.shape) - 1
+        ), f"x_target should have: leading dim of 1, same as x, or have 1 less dim than x, but have shapes x: {x.shape}, x_target: {x_target.shape}."
+        return self.distance_func(x.unsqueeze(1), x_target.unsqueeze(1))
 
     def _compute_index_pairs(self):
         """Return the list of all index pairs for (theta_i, x_target_j)."""
@@ -417,7 +438,7 @@ class DistanceEstimator(nn.Module):
         if not hasattr(self, "embedding_net_x"):
             # If we don't have an embedding net, just pass through.
             self.embedding_net_x = nn.Identity()
-        
+
         x_embedded = self.embedding_net_x(x)
         return self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))

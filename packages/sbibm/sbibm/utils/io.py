@@ -8,10 +8,7 @@ import torch
 from sbibm.utils.torch import get_default_device
 
 
-def get_float_from_csv(
-    path: Union[str, Path],
-    dtype: type = np.float32,
-):
+def get_float_from_csv(path: Union[str, Path], dtype: type = np.float32):
     """Get a single float from a csv file"""
     with open(path, "r") as fh:
         return np.loadtxt(fh).astype(dtype)
@@ -59,17 +56,9 @@ def get_ndarray_from_csv(
         return pd.read_csv(path).astype(dtype)
 
 
-def save_float_to_csv(
-    path: Union[str, Path],
-    data: float,
-    dtype: type = np.float32,
-):
+def save_float_to_csv(path: Union[str, Path], data: float, dtype: type = np.float32):
     """Save a single float to a csv file"""
-    np.savetxt(
-        path,
-        np.asarray(data).reshape(-1).astype(np.float32),
-        delimiter=",",
-    )
+    np.savetxt(path, np.asarray(data).reshape(-1).astype(np.float32), delimiter=",")
 
 
 def save_tensor_to_csv(
@@ -80,7 +69,6 @@ def save_tensor_to_csv(
     index: bool = False,
 ):
     """Save torch.Tensor to csv at given path"""
-    pd.DataFrame(
-        data.cpu().numpy().astype(dtype),
-        columns=columns,
-    ).to_csv(path, index=index)
+    pd.DataFrame(data.cpu().numpy().astype(dtype), columns=columns).to_csv(
+        path, index=index
+    )

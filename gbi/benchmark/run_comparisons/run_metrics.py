@@ -35,23 +35,40 @@ def collect_metrics(cfg: DictConfig) -> None:
     posterior_samples_collected = gbi_utils.pickle_load(
         f"../posterior_samples_collected.pkl"
     )
-    if cfg.algorithm == "COLLECT":        
-        df_summary, posterior_predictives_collected = [], []                
+    if cfg.algorithm == "COLLECT":
+        df_summary, posterior_predictives_collected = [], []
         for ix_, psc in enumerate(posterior_samples_collected):
             xo_info, xo_theta, _ = psc
-            cur_folder = f'../obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/'
-            if path.exists(cur_folder):                
+            cur_folder = f"../obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/"
+            if path.exists(cur_folder):
                 # Load summary and posterior predictives
-                df_summary += [pd.read_csv(cur_folder + f,index_col=0) for f in listdir(cur_folder) if 'summary' in f]                
-                posterior_predictives_collected.append([xo_info, xo_theta, {k:v for f in listdir(cur_folder) if 'posterior_predictives' in f for k,v in gbi_utils.pickle_load(cur_folder + f).items()}])
+                df_summary += [
+                    pd.read_csv(cur_folder + f, index_col=0)
+                    for f in listdir(cur_folder)
+                    if "summary" in f
+                ]
+                posterior_predictives_collected.append(
+                    [
+                        xo_info,
+                        xo_theta,
+                        {
+                            k: v
+                            for f in listdir(cur_folder)
+                            if "posterior_predictives" in f
+                            for k, v in gbi_utils.pickle_load(cur_folder + f).items()
+                        },
+                    ]
+                )
             else:
                 log.info(f"Folder {cur_folder} does not exist")
-                                
+
         df_summary = pd.concat(df_summary, ignore_index=True)
         df_summary.to_csv(f"../summary_collected.csv")
-        gbi_utils.pickle_dump(f"../posterior_predictives_collected.pkl", posterior_predictives_collected)
+        gbi_utils.pickle_dump(
+            f"../posterior_predictives_collected.pkl", posterior_predictives_collected
+        )
         return
-    
+
     task_name = cfg.task.name
     if task_name == "gaussian_mixture":
         distance_func = distances.mmd_dist

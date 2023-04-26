@@ -94,9 +94,7 @@ def build_mnle(
     )
 
     return MixedDensityEstimator(
-        discrete_net=disc_nle,
-        continuous_net=cont_nle,
-        log_transform_x=log_transform_x,
+        discrete_net=disc_nle, continuous_net=cont_nle, log_transform_x=log_transform_x
     )
 
 
@@ -258,8 +256,7 @@ class MixedDensityEstimator(nn.Module):
 
             # Sample discrete data given parameters.
             discrete_x = self.discrete_net.sample(
-                theta=theta,
-                num_samples=num_samples,
+                theta=theta, num_samples=num_samples
             ).reshape(num_samples, 1)
 
             # Sample continuous data condition on parameters and discrete data.
@@ -371,8 +368,7 @@ class MixedDensityEstimator(nn.Module):
             net_device
         )
         log_prob_per_cat[:-1, :] = self.discrete_net.log_prob(
-            repeated_categories.to(net_device),
-            repeated_theta.to(net_device),
+            repeated_categories.to(net_device), repeated_theta.to(net_device)
         ).reshape(-1, batch_size)
         # infer the last category logprob from sum to one.
         log_prob_per_cat[-1, :] = torch.log(1 - log_prob_per_cat[:-1, :].exp().sum(0))

@@ -3,8 +3,7 @@ import torch
 
 
 def median_distance(
-    predictive_samples: torch.Tensor,
-    observation: torch.Tensor,
+    predictive_samples: torch.Tensor, observation: torch.Tensor
 ) -> torch.Tensor:
     """Compute median distance
 

@@ -157,9 +157,7 @@ def test_training_and_mcmc_on_device(
 
         if mcmc_method == "rejection":
             posterior = RejectionPosterior(
-                proposal=prior,
-                potential_fn=potential_fn,
-                device=training_device,
+                proposal=prior, potential_fn=potential_fn, device=training_device
             )
         elif mcmc_method == "direct":
             posterior = DirectPosterior(
@@ -230,12 +228,7 @@ def test_check_embedding_net_device(
     )
 
 
-@pytest.mark.parametrize(
-    "shape_x",
-    [
-        (3, 1),
-    ],
-)
+@pytest.mark.parametrize("shape_x", [(3, 1)])
 @pytest.mark.parametrize(
     "shape_theta", [(3, 2), pytest.param((2, 1), marks=pytest.mark.xfail)]
 )

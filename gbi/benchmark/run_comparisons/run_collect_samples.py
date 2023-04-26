@@ -38,11 +38,12 @@ def collect_samples(cfg: DictConfig) -> None:
         gt_datetime = np.sort(listdir(f"{gt_dir}/{task_name}/"))[-1]
     print(f"Collecting GT posterior samples for {task_name} at {gt_datetime}.")
 
-
     # Note that this works best if all the inference objects are saved in the same directory, i.e., run at the same time, such that hydra would place them in the same datetime folder.
     # Otherwise specify different inference_datetime for each algo
     inference_datetime = cfg.inference_datetime
-    print(f"Collecting learned posterior samples for {task_name} at {inference_datetime}.")
+    print(
+        f"Collecting learned posterior samples for {task_name} at {inference_datetime}."
+    )
     algos = cfg.algos
 
     # Define all permutatations.
@@ -68,12 +69,14 @@ def collect_samples(cfg: DictConfig) -> None:
         # Take the latest run
         posterior_samples["GT"] = {}
         for beta in betas:
-            gt_sample_path = f"{gt_dir}/{task_name}/{gt_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/rejection_samples.pkl"            
+            gt_sample_path = f"{gt_dir}/{task_name}/{gt_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/rejection_samples.pkl"
             if path.exists(gt_sample_path):
-                posterior_samples["GT"][f"beta_{beta}"] = (gbi_utils.pickle_load(gt_sample_path), gt_datetime)
-            else:                 
+                posterior_samples["GT"][f"beta_{beta}"] = (
+                    gbi_utils.pickle_load(gt_sample_path),
+                    gt_datetime,
+                )
+            else:
                 print(f"---GT posterior samples for beta={beta}, {xo_info} not found.")
-            
 
         # load inference samples
         for algo in algos:
@@ -81,7 +84,7 @@ def collect_samples(cfg: DictConfig) -> None:
 
             if path.isdir(posterior_dir):
                 # Take the latest run
-                posterior_datetime = np.sort(listdir(posterior_dir))[-1]                
+                posterior_datetime = np.sort(listdir(posterior_dir))[-1]
                 # print(f"Collecting {algo} posterior samples for {xo_info} at {posterior_datetime}.")
                 posterior_samples[algo] = {}
 
@@ -93,32 +96,28 @@ def collect_samples(cfg: DictConfig) -> None:
                         # GBI, eGBI, or ABC: collect all betas
                         pass
 
-                    ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"                    
+                    ps_path = f"{posterior_dir}/{posterior_datetime}/beta_{beta}/obs_{xo_info[0]}_{xo_info[1]}_{xo_info[2]}/posterior_samples.pkl"
                     if path.exists(ps_path):
-                        posterior_samples[algo][f"beta_{beta}"] = (gbi_utils.pickle_load(ps_path), posterior_datetime)
+                        posterior_samples[algo][f"beta_{beta}"] = (
+                            gbi_utils.pickle_load(ps_path),
+                            posterior_datetime,
+                        )
                     else:
                         print(
-                            f"---Posterior samples for {algo}, beta={beta}, {xo_info} not found."                            
-                        )                        
+                            f"---Posterior samples for {algo}, beta={beta}, {xo_info} not found."
+                        )
 
             else:
                 print(f"Posterior samples for {algo} not found.")
 
         posterior_samples_collected.append(
-            [
-                xo_info,
-                {
-                    "xo": xo,
-                    "theta_gt": theta_gt,
-                },
-                posterior_samples,
-            ]
+            [xo_info, {"xo": xo, "theta_gt": theta_gt}, posterior_samples]
         )
 
     # Save collected samples
-    save_path = getcwd() + '/posterior_samples_collected.pkl'
+    save_path = getcwd() + "/posterior_samples_collected.pkl"
     gbi_utils.pickle_dump(save_path, posterior_samples_collected)
-    
+
     print("---Collected posterior samples:---")
     # [print(alg, list(v.keys())) for alg, v in posterior_samples_collected[0][2].items()]
 

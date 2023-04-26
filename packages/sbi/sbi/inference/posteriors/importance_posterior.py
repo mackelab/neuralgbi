@@ -135,17 +135,13 @@ class ImportanceSamplingPosterior(NeuralPosterior):
 
         if is_new_x:  # Calculate at x; don't save.
             _, log_importance_weights = importance_sample(
-                self.potential_fn,
-                proposal=self.proposal,
-                num_samples=num_samples,
+                self.potential_fn, proposal=self.proposal, num_samples=num_samples
             )
             return torch.mean(torch.exp(log_importance_weights))
         elif not_saved_at_default_x or force_update:  # Calculate at default_x; save.
             assert self.default_x is not None
             _, log_importance_weights = importance_sample(
-                self.potential_fn,
-                proposal=self.proposal,
-                num_samples=num_samples,
+                self.potential_fn, proposal=self.proposal, num_samples=num_samples
             )
             self._normalization_constant = torch.mean(torch.exp(log_importance_weights))
 
@@ -186,8 +182,7 @@ class ImportanceSamplingPosterior(NeuralPosterior):
             raise NameError
 
     def _importance_sample(
-        self,
-        sample_shape: Shape = torch.Size(),
+        self, sample_shape: Shape = torch.Size()
     ) -> Tuple[Tensor, Tensor]:
         """Returns samples from the proposal and log of their importance weights.
 
@@ -201,9 +196,7 @@ class ImportanceSamplingPosterior(NeuralPosterior):
         """
         num_samples = torch.Size(sample_shape).numel()
         samples, log_importance_weights = importance_sample(
-            self.potential_fn,
-            proposal=self.proposal,
-            num_samples=num_samples,
+            self.potential_fn, proposal=self.proposal, num_samples=num_samples
         )
 
         samples = samples.reshape((*sample_shape, -1)).to(self._device)

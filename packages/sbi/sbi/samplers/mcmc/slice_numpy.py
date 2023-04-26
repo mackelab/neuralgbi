@@ -273,7 +273,7 @@ class SliceSamplerSerial:
         num_chains, dim_samples = self.x.shape
 
         # Generate seeds for workers from current random state.
-        seeds = torch.randint(high=2**31, size=(num_chains,))
+        seeds = torch.randint(high=2 ** 31, size=(num_chains,))
 
         with tqdm_joblib(
             tqdm(

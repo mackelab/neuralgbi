@@ -322,10 +322,7 @@ def test_c2st_multi_round_snl_on_linearGaussian_vi(num_trials: int):
     potential_fn, theta_transform = likelihood_estimator_based_potential(
         prior=prior, likelihood_estimator=likelihood_estimator, x_o=x_o
     )
-    posterior1 = VIPosterior(
-        potential_fn=potential_fn,
-        theta_transform=theta_transform,
-    )
+    posterior1 = VIPosterior(potential_fn=potential_fn, theta_transform=theta_transform)
     posterior1.train()
 
     theta, x = simulate_for_sbi(
@@ -444,9 +441,7 @@ def test_api_snl_sampling_methods(
             )
         elif sample_with == "importance":
             posterior = ImportanceSamplingPosterior(
-                potential_fn,
-                proposal=prior,
-                theta_transform=theta_transform,
+                potential_fn, proposal=prior, theta_transform=theta_transform
             )
         else:
             posterior = VIPosterior(

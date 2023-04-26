@@ -147,9 +147,7 @@ class BernoulliGLM(Task):
             return data.reshape(-1, self.dim_data)
 
     def _sample_reference_posterior(
-        self,
-        num_samples: int,
-        num_observation: Optional[int] = None,
+        self, num_samples: int, num_observation: Optional[int] = None
     ) -> torch.Tensor:
         from pypolyagamma import PyPolyaGamma
         from tqdm import tqdm

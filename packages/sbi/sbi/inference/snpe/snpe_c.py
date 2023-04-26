@@ -90,7 +90,7 @@ class SNPE_C(PosteriorEstimator):
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
         calibration_kernel: Optional[Callable] = None,
         resume_training: bool = False,
@@ -252,11 +252,7 @@ class SNPE_C(PosteriorEstimator):
             self._maybe_z_scored_prior = self._prior
 
     def _log_prob_proposal_posterior(
-        self,
-        theta: Tensor,
-        x: Tensor,
-        masks: Tensor,
-        proposal: DirectPosterior,
+        self, theta: Tensor, x: Tensor, masks: Tensor, proposal: DirectPosterior
     ) -> Tensor:
         """Return the log-probability of the proposal posterior.
 

@@ -138,7 +138,7 @@ class LikelihoodEstimator(NeuralInference, ABC):
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
         resume_training: bool = False,
         discard_prior_samples: bool = False,
@@ -190,8 +190,7 @@ class LikelihoodEstimator(NeuralInference, ABC):
             theta, x, _ = self.get_simulations(starting_round=start_idx)
             # Use only training data for building the neural net (z-scoring transforms)
             self._neural_net = self._build_neural_net(
-                theta[self.train_indices].to("cpu"),
-                x[self.train_indices].to("cpu"),
+                theta[self.train_indices].to("cpu"), x[self.train_indices].to("cpu")
             )
             self._x_shape = x_shape_from_simulation(x.to("cpu"))
             del theta, x
@@ -202,8 +201,7 @@ class LikelihoodEstimator(NeuralInference, ABC):
         self._neural_net.to(self._device)
         if not resume_training:
             self.optimizer = optim.Adam(
-                list(self._neural_net.parameters()),
-                lr=learning_rate,
+                list(self._neural_net.parameters()), lr=learning_rate
             )
             self.epoch, self._val_log_prob = 0, float("-Inf")
 
@@ -228,8 +226,7 @@ class LikelihoodEstimator(NeuralInference, ABC):
                 train_loss.backward()
                 if clip_max_norm is not None:
                     clip_grad_norm_(
-                        self._neural_net.parameters(),
-                        max_norm=clip_max_norm,
+                        self._neural_net.parameters(), max_norm=clip_max_norm
                     )
                 self.optimizer.step()
 

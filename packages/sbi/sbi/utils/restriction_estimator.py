@@ -266,7 +266,7 @@ class RestrictionEstimator:
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
         loss_importance_weights: Union[bool, float] = False,
         subsample_invalid_sims: Union[float, str] = 1.0,
@@ -360,10 +360,7 @@ class RestrictionEstimator:
             self._first_round_validation_theta = theta[val_indices]
             self._first_round_validation_label = label[val_indices]
 
-        optimizer = optim.Adam(
-            list(self._classifier.parameters()),
-            lr=learning_rate,
-        )
+        optimizer = optim.Adam(list(self._classifier.parameters()), lr=learning_rate)
 
         # Compute the fraction of good simulations in dataset.
         if loss_importance_weights:
@@ -394,8 +391,7 @@ class RestrictionEstimator:
                 loss.backward()
                 if clip_max_norm is not None:
                     clip_grad_norm_(
-                        self._classifier.parameters(),
-                        max_norm=clip_max_norm,
+                        self._classifier.parameters(), max_norm=clip_max_norm
                     )
                 optimizer.step()
 
@@ -620,7 +616,7 @@ class RestrictedPrior:
         print(
             f"The classifier rejected {(1.0 - acceptance_rate) * 100:.1f}% of all "
             f"samples. You will get a speed-up of "
-            f"{(1.0 / acceptance_rate - 1.0) * 100:.1f}%.",
+            f"{(1.0 / acceptance_rate - 1.0) * 100:.1f}%."
         )
 
         # When in case of leakage a batch size was used there could be too many samples.

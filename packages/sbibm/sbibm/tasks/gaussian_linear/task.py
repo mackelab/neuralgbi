@@ -46,7 +46,7 @@ class GaussianLinear(Task):
 
         self.simulator_params = {
             "precision_matrix": torch.inverse(
-                simulator_scale * torch.eye(self.dim_parameters),
+                simulator_scale * torch.eye(self.dim_parameters)
             )
         }
 
@@ -113,8 +113,7 @@ class GaussianLinear(Task):
                     self.simulator_params["precision_matrix"], observation.reshape(-1)
                 )
                 + torch.matmul(
-                    self.prior_params["precision_matrix"],
-                    self.prior_params["loc"],
+                    self.prior_params["precision_matrix"], self.prior_params["loc"]
                 )
             ),
         )
@@ -145,8 +144,7 @@ class GaussianLinear(Task):
             Samples from reference posterior
         """
         posterior = self._get_reference_posterior(
-            num_observation=num_observation,
-            observation=observation,
+            num_observation=num_observation, observation=observation
         )
 
         return posterior.sample((num_samples,))

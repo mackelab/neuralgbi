@@ -42,6 +42,5 @@ def run(
         )
 
         return reference_posterior_samples[
-            np.random.randint(reference_posterior_samples.shape[0], size=num_samples),
-            :,
+            np.random.randint(reference_posterior_samples.shape[0], size=num_samples), :
         ]

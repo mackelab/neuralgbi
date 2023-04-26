@@ -18,8 +18,7 @@ def tb_plot_posterior(
 
 
 def tb_make_writer(
-    logger: logging.Logger = None,
-    basepath: str = "tensorboard",
+    logger: logging.Logger = None, basepath: str = "tensorboard"
 ) -> (SummaryWriter, Callable):
     """Builds tensorboard summary writers"""
     log_dir = Path(f"{basepath}/summary")
@@ -40,12 +39,7 @@ def tb_make_writer(
 
 
 class TensorboardHandler(logging.Handler):
-    def __init__(
-        self,
-        writer: SummaryWriter,
-        *args: Any,
-        **kwargs: Any,
-    ):
+    def __init__(self, writer: SummaryWriter, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.writer = writer
 

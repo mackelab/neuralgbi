@@ -184,7 +184,7 @@ class PosteriorEstimator(NeuralInference, ABC):
         learning_rate: float = 5e-4,
         validation_fraction: float = 0.1,
         stop_after_epochs: int = 20,
-        max_num_epochs: int = 2**31 - 1,
+        max_num_epochs: int = 2 ** 31 - 1,
         clip_max_norm: Optional[float] = 5.0,
         calibration_kernel: Optional[Callable] = None,
         resume_training: bool = False,
@@ -285,15 +285,12 @@ class PosteriorEstimator(NeuralInference, ABC):
             theta, x, _ = self.get_simulations(starting_round=start_idx)
             # Use only training data for building the neural net (z-scoring transforms)
             self._neural_net = self._build_neural_net(
-                theta[self.train_indices].to("cpu"),
-                x[self.train_indices].to("cpu"),
+                theta[self.train_indices].to("cpu"), x[self.train_indices].to("cpu")
             )
             self._x_shape = x_shape_from_simulation(x.to("cpu"))
 
             test_posterior_net_for_multi_d_x(
-                self._neural_net,
-                theta.to("cpu"),
-                x.to("cpu"),
+                self._neural_net, theta.to("cpu"), x.to("cpu")
             )
 
             del theta, x
@@ -513,11 +510,7 @@ class PosteriorEstimator(NeuralInference, ABC):
 
     @abstractmethod
     def _log_prob_proposal_posterior(
-        self,
-        theta: Tensor,
-        x: Tensor,
-        masks: Tensor,
-        proposal: Optional[Any],
+        self, theta: Tensor, x: Tensor, masks: Tensor, proposal: Optional[Any]
     ) -> Tensor:
         raise NotImplementedError
 
