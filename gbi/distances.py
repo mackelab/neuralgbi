@@ -21,14 +21,33 @@ def mae_dist(xs: Tensor, x_o: Tensor) -> Tensor:
 
 ## MMD
 def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
-    assert len(xs.shape) == 4
-    assert len(x_o.shape) > 1
-    assert xs.shape[2] > 1
-    if len(x_o.shape) > 2:
-        x_o = x_o.squeeze()
-    assert x_o.shape[0] > 1
+    # TODO: need to clean up the shape checks here.
 
-    mmds = torch.stack([sample_based_mmd(x[0], x_o) for x in xs])
+    # Check that x_o is at least 2D, i.e., [num_xs, num_x_dims].
+    assert len(x_o.shape) > 1
+
+    # Check that xs is of dim [num_thetas, 1, num_xs, num_x_dims]
+    assert len(xs.shape) == 4
+
+    # Check that there are more than 1 data points, i.e., samples in x.
+    assert xs.shape[2] > 1
+
+    if xs.shape == x_o.shape:
+        # If xs and x_o have identical shapes, compute pairwise MMDs.
+        mmds = torch.stack(
+            [
+                sample_based_mmd(xs[i_x].squeeze(), x_o[i_x].squeeze())
+                for i_x in range(xs.shape[0])
+            ]
+        )
+
+    else:
+        # If they don't have identical shapes, compute all pairwise between xs and xo
+        if len(x_o.shape) > 2:
+            x_o = x_o.squeeze()
+        assert x_o.shape[0] > 1
+        mmds = torch.stack([sample_based_mmd(x[0], x_o) for x in xs])
+
     return mmds
 
 

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from typing import Any, Callable, Dict, Optional, Union
 from copy import deepcopy
 import numpy as np
+from math import ceil
 import torch
 from torch import Tensor, nn, optim
 from torch.utils.data import TensorDataset, DataLoader
@@ -35,7 +36,7 @@ class GBInference:
         if self.do_precompute_distances:
             # Pre compute the distance function between all x and x_targets.
             self._precompute_distance()
-            self._compute_index_pairs()
+            # self._compute_index_pairs()
         return self
 
     def initialize_distance_estimator(
@@ -62,8 +63,10 @@ class GBInference:
         distance_net: Optional[nn.Module] = None,
         training_batch_size: int = 500,
         max_n_epochs: int = 1000,
-        stop_after_counter_reaches: int = 20,
+        stop_after_counter_reaches: int = 50,
         validation_fraction: float = 0.1,
+        n_train_per_theta: int = 1,
+        n_val_per_theta: int = 1,
         print_every_n: int = 20,
         plot_losses: bool = True,
     ) -> nn.Module:
@@ -78,7 +81,7 @@ class GBInference:
         optimizer = optim.Adam(self.distance_net.parameters())
 
         # Hold out entire rows of theta/x for validation, but leave all x_targets intact.
-        #       THE OTHER OPTION is to hold out all thetas, and the corresponding xs in x_target.
+        #   The other option is to hold out all thetas, as well as the corresponding xs in x_target.
         dataset = TensorDataset(torch.arange(len(self.theta)))
         train_set, val_set = torch.utils.data.random_split(
             dataset,
@@ -88,16 +91,6 @@ class GBInference:
         )
         dataloader = DataLoader(train_set, batch_size=training_batch_size, shuffle=True)
 
-        # Get validation set by combining all held out thetas with all x_targets, and their distances.
-        idx_val = torch.cartesian_prod(
-            Tensor(val_set.indices).to(int), torch.arange(len(self.x_target), dtype=int)
-        )
-        theta_val, x_val, dist_val = (
-            self.theta[idx_val[:, 0]],
-            self.x_target[idx_val[:, 1]],
-            self.distance_precomputed[idx_val[:, 0], idx_val[:, 1]],
-        )
-
         # Training loop.
         train_losses, val_losses = [], []
         epoch = 0
@@ -106,34 +99,34 @@ class GBInference:
             epoch, stop_after_counter_reaches
         ):
             time_start = time()
-            # Randomly sample one x_target for each theta for each epoch, without replacement.
-            #   TO DO: sample multiple x_targets for each theta for each epoch
-            idx_x_targets_epoch = torch.ones((len(self.x_target),)).multinomial(
-                len(train_set.indices), replacement=False
-            )
+
+            # If use all validation data, then pre-compute and store all possible indices
+            # Otherwise, sample new ones per epoch
+            if (epoch == 0) or (n_val_per_theta != -1):
+                # Only sample when first epoch, or when not using all validation data
+                # i.e., don't resample if using all validation data and epoch > 0
+                idx_val = self.make_index_pairs(
+                    torch.Tensor(val_set.indices).to(int),
+                    torch.arange(len(self.x_target), dtype=int),
+                    n_val_per_theta,
+                )
+                theta_val, _, xt_val, dist_val = self.get_theta_x_distances(idx_val)
 
             for i_b, idx_theta_batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
-                # Combine theta and x_target training indices.
-                idx_batch = torch.vstack(
-                    (
-                        idx_theta_batch[0],
-                        idx_x_targets_epoch[
-                            i_b * training_batch_size : (i_b + 1) * training_batch_size
-                        ],
-                    )
-                ).T
-
-                # Get the batch of theta, x, and pre-computed distances.
-                theta_batch, x_batch, dist_batch = (
-                    self.theta[idx_batch[:, 0]],
-                    self.x_target[idx_batch[:, 1]],
-                    self.distance_precomputed[idx_batch[:, 0], idx_batch[:, 1]],
+                # Randomly sample n x_target for each theta, and get the data.
+                idx_batch = self.make_index_pairs(
+                    idx_theta_batch[0],
+                    torch.arange(len(self.x_target), dtype=int),
+                    n_train_per_theta,
+                )
+                theta_batch, _, xt_batch, dist_batch = self.get_theta_x_distances(
+                    idx_batch
                 )
 
                 # Forward pass for distances.
-                dist_pred = self.distance_net(theta_batch, x_batch).squeeze()
+                dist_pred = self.distance_net(theta_batch, xt_batch).squeeze()
 
                 # Training loss.
                 l = nn_loss(dist_batch, dist_pred)
@@ -143,16 +136,15 @@ class GBInference:
 
             # Compute validation loss each epoch.
             with torch.no_grad():
-                dist_pred = self.distance_net(theta_val, x_val).squeeze()
+                dist_pred = self.distance_net(theta_val, xt_val).squeeze()
                 self._val_loss = nn_loss(dist_val, dist_pred).item()
-                val_losses.append([i_b * epoch, self._val_loss])
+                val_losses.append([(i_b + 1) * epoch, self._val_loss])
 
             # Print validation loss
             if epoch % print_every_n == 0:
                 print(
-                    f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}, {(time()-time_start)/print_every_n:.4f} seconds per epoch."
+                    f"{epoch}: train loss: {l:.6f}, val loss: {self._val_loss:.6f}, {(time()-time_start):.4f} seconds per epoch."
                 )
-                time_start = time()
 
             epoch += 1
 
@@ -216,17 +208,6 @@ class GBInference:
         def generalized_loglikelihood(theta: Tensor, x_o: Tensor):
             theta = atleast_2d(theta)
             dist_pred = self.predict_distance(theta, x_o)
-
-            ## reshaping of x is taken care of in predict_distance
-            # if len(x_o.shape)==2:
-            #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1))).squeeze(1)
-            # elif len(x_o.shape)==3:
-            #     # Has multiple independent observations, i.e., gaussian mixture task.
-            #     dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], 1, 1))).squeeze(1)
-
-            ## general solution to this
-            # dist_pred = distance_net(theta, x_o.repeat((theta.shape[0], *[1]*(len(x_o.shape)-1)))).squeeze(1)
-
             assert dist_pred.shape == (theta.shape[0],)
             return dist_pred
 
@@ -266,43 +247,74 @@ class GBInference:
             x_target.shape[0] == 1
             or x_target.shape[0] == x.shape[0]
             or len(x_target.shape) == len(x.shape) - 1
-        ), f"x_target should have: leading dim of 1, same as x, or have 1 less dim than x, but have shapes x: {x.shape}, x_target: {x_target.shape}."
+        ), f"x_target should have: same leading dim as x, leading dim of 1, or have 1 less dim than x, but have shapes x: {x.shape}, x_target: {x_target.shape}."
         return self.distance_func(x.unsqueeze(1), x_target.unsqueeze(1))
 
-    def _compute_index_pairs(self):
-        """Return the list of all index pairs for (theta_i, x_target_j)."""
-        n_lowest = self.n_lowest
-        n_theta, n_x_target = self.distance_precomputed.shape
-        if n_lowest == None:
-            # Not subselecting, return full index list
-            idx_train = Tensor(np.indices((n_theta, n_x_target)).reshape((2, -1)).T)
+    def subsample_indices(self, n_total, n_samples):
+        return torch.randperm(n_total)[:n_samples]
+
+    def make_index_pairs(self, theta_indices, x_target_indices, n_draws_per_theta=1):
+        if n_draws_per_theta == -1:
+            # Return all possible index pairs.
+            return torch.cartesian_prod(theta_indices, x_target_indices)
         else:
-            # Subselect n lowest distances for train (doesn't work well)
-            idx_train = torch.vstack(
-                [
-                    torch.topk(self.distance_precomputed, n_lowest, 0, largest=False)[
-                        1
-                    ].T.reshape(-1),
-                    torch.arange(n_x_target).repeat((n_lowest, 1)).T.reshape(-1),
-                ]
-            ).T
-        self.idx_train = idx_train.to(int)
+            # Return a random subset of index pairs, n per theta.
+            index_pairs = []
+            for i in range(n_draws_per_theta):
+                xt_idx = self.subsample_indices(
+                    len(x_target_indices), len(theta_indices)
+                )
+                index_pairs.append(
+                    torch.vstack((theta_indices, x_target_indices[xt_idx])).T
+                )
+            return torch.concat(index_pairs, dim=0)
+
+    def get_theta_x_distances(self, index_pairs):
+        """Return theta, x, x_target, and distance for each index pair."""
+        theta = self.theta[index_pairs[:, 0]]
+        x = self.x[index_pairs[:, 0]]
+        x_target = self.x_target[index_pairs[:, 1]]
+        # import pdb; pdb.set_trace()
+        if self.do_precompute_distances:
+            dist = self.distance_precomputed[index_pairs[:, 0], index_pairs[:, 1]]
+        else:
+            dist = self.compute_distance(x, x_target)
+        return theta, x, x_target, dist
 
     def _plot_losses(self, train_losses, val_losses):
         plt.plot(train_losses, "k", alpha=0.8)
-        plt.plot(val_losses[:, 0], val_losses[:, 1], "ro-", alpha=0.8)
+        plt.plot(val_losses[:, 0], val_losses[:, 1], "r.-", alpha=0.8)
 
-    def _idx_to_data(self, idx_batch):
-        """Look up for theta, x_target, and distance given indices."""
-        # Load up the thetas, xs, and distances.
-        theta_batch, x_batch = (
-            self.theta[idx_batch[0][:, 0]],
-            self.x_target[idx_batch[0][:, 1]],
-        )
-        # Look up from precomputed distance matrix.
-        dist_batch = self.distance_precomputed[idx_batch[0][:, 0], idx_batch[0][:, 1]]
+    # def _compute_index_pairs(self):
+    #     """Return the list of all index pairs for (theta_i, x_target_j)."""
+    #     n_lowest = self.n_lowest
+    #     n_theta, n_x_target = self.distance_precomputed.shape
+    #     if n_lowest == None:
+    #         # Not subselecting, return full index list
+    #         idx_train = Tensor(np.indices((n_theta, n_x_target)).reshape((2, -1)).T)
+    #     else:
+    #         # Subselect n lowest distances for train (doesn't work well)
+    #         idx_train = torch.vstack(
+    #             [
+    #                 torch.topk(self.distance_precomputed, n_lowest, 0, largest=False)[
+    #                     1
+    #                 ].T.reshape(-1),
+    #                 torch.arange(n_x_target).repeat((n_lowest, 1)).T.reshape(-1),
+    #             ]
+    #         ).T
+    #     self.idx_train = idx_train.to(int)
 
-        return theta_batch, x_batch, dist_batch
+    # def _idx_to_data(self, idx_batch):
+    #     """Look up for theta, x_target, and distance given indices."""
+    #     # Load up the thetas, xs, and distances.
+    #     theta_batch, xt_batch = (
+    #         self.theta[idx_batch[0][:, 0]],
+    #         self.x_target[idx_batch[0][:, 1]],
+    #     )
+    #     # Look up from precomputed distance matrix.
+    #     dist_batch = self.distance_precomputed[idx_batch[0][:, 0], idx_batch[0][:, 1]]
+
+    #     return theta_batch, xt_batch, dist_batch
 
 
 class GBInferenceEmulator:

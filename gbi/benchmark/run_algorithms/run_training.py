@@ -133,7 +133,11 @@ def train_GBI(theta, x, task, config, task_folder, task_name):
         net_kwargs = {"trial_net_input_dim": 2, "trial_net_output_dim": 20}
     else:
         net_kwargs = {"trial_net_input_dim": None, "trial_net_output_dim": None}
-    inference = GBInference(prior=task.prior, distance_func=task.dist_func_gbi)
+    inference = GBInference(
+        prior=task.prior,
+        distance_func=task.dist_func_gbi,
+        do_precompute_distances=config.do_precompute_distances,
+    )
     inference = inference.append_simulations(theta, x, x_target)
     inference.initialize_distance_estimator(
         num_layers=config.num_layers,
@@ -145,6 +149,9 @@ def train_GBI(theta, x, task, config, task_folder, task_name):
     distance_net = inference.train(
         training_batch_size=config.training_batch_size,
         max_n_epochs=config.max_epochs,
+        validation_fraction=config.validation_fraction,
+        n_train_per_theta=config.n_train_per_theta,
+        n_val_per_theta=config.n_val_per_theta,
         stop_after_counter_reaches=config.n_epochs_convergence,
         print_every_n=config.print_every_n,
         plot_losses=False,
