@@ -12,6 +12,6 @@ inference_datetime: ???
 
 hydra:
   run:
-      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${now:%Y_%m_%d}__${now:%H_%M_%S}/  
+    dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${now:%Y_%m_%d}__${now:%H_%M_%S}/  
   job:
     chdir: True   

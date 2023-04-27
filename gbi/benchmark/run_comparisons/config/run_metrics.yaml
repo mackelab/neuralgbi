@@ -16,9 +16,14 @@ collection_datetime: ???
 
 hydra:
   run:
-      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/obs_${task.xo_index}_${task.is_specified}_${task.is_known}
+    dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/obs_${task.xo_index}_${task.is_specified}_${task.is_known}
   sweep:
-      dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/
-      subdir: obs_${task.xo_index}_${task.is_specified}_${task.is_known}
+    dir: ../../../results/benchmark/algorithms/${task.name}/${inference_datetime}/posterior_samples_collected/${collection_datetime}/
+    subdir: obs_${task.xo_index}_${task.is_specified}_${task.is_known}
+  sweeper:
+    params:      
+        task.xo_index: 0,1,2,3,4,5,6,7,8,9
+        task.is_specified: specified,misspecified
+        task.is_known: known,unknown
   job:
-      chdir: True
+    chdir: True

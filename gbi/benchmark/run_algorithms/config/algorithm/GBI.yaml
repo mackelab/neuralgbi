@@ -3,13 +3,17 @@ net_type: 'resnet'
 training_batch_size: 500
 num_layers: 3
 num_hidden: 64
-noise_level: 2.0
-n_augmented_x: 100
+positive_constraint_fn: 'softplus'
+
 max_epochs: 5000
 n_epochs_convergence: 100
 print_every_n: 20
-positive_constraint_fn: 'softplus'
 validation_fraction: 0.1
-n_train_per_theta: 5
-n_val_per_theta: 10
+
+noise_level: 2.0
+n_augmented_x: 100
 do_precompute_distances: False
+
+
+n_train_per_theta: 10
+n_val_per_theta: 10

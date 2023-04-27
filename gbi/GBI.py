@@ -282,8 +282,10 @@ class GBInference:
         return theta, x, x_target, dist
 
     def _plot_losses(self, train_losses, val_losses):
+        plt.figure(figsize=(8, 3))
         plt.plot(train_losses, "k", alpha=0.8)
         plt.plot(val_losses[:, 0], val_losses[:, 1], "r.-", alpha=0.8)
+        plt.savefig("losses.png")
 
     # def _compute_index_pairs(self):
     #     """Return the list of all index pairs for (theta_i, x_target_j)."""

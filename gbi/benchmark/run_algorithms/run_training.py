@@ -154,7 +154,7 @@ def train_GBI(theta, x, task, config, task_folder, task_name):
         n_val_per_theta=config.n_val_per_theta,
         stop_after_counter_reaches=config.n_epochs_convergence,
         print_every_n=config.print_every_n,
-        plot_losses=False,
+        plot_losses=True,
     )
     return inference, distance_net
 
