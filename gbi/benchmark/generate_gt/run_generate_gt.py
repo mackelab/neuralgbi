@@ -30,6 +30,7 @@ def run(cfg: DictConfig) -> None:
         simulated_x = pickle.load(handle)
     x_o = simulated_x[cfg.task.xo_index].unsqueeze(0)
 
+    print(f"Generating ground truth for {cfg.task.name}...")
     # Define task.
     if cfg.task.name == "uniform_1d":
         task = UniformNoise1D(x_o=x_o, beta=cfg.task.beta)
@@ -37,8 +38,8 @@ def run(cfg: DictConfig) -> None:
         task = TwoMoonsGBI(x_o=x_o, beta=cfg.task.beta)
     elif cfg.task.name == "linear_gaussian":
         task = LinearGaussian(x_o=x_o, beta=cfg.task.beta)
-    elif cfg.task.name == "gaussian_mixture":
-        task = GaussianMixture(x_o=x_o, beta=cfg.task.beta)
+    elif cfg.task.name == "gaussian_mixture":        
+        task = GaussianMixture(x_o=x_o.squeeze(), beta=cfg.task.beta)
     else:
         raise NotImplementedError
 
@@ -52,13 +53,13 @@ def run(cfg: DictConfig) -> None:
     _ = torch.manual_seed(seed)
     _ = np.random.seed(seed=seed)
 
-    if task.name in ["uniform_1d", "two_moons"]:
+    if cfg.task.name in ["uniform_1d", "two_moons"]:
         run_rejection(task, proposal=task.prior, config=cfg.rejection)
-    elif task.name=="linear_gaussian":
+    elif cfg.task.name=="linear_gaussian":
         run_mcmc(task)
         train_flow(**cfg.flow)
         run_rejection(task, proposal="net", config=cfg.rejection)
-    elif task.name=="gaussian_mixture":
+    elif cfg.task.name=="gaussian_mixture":
         # Load GT theta to use as proposal for gaussian mixture task.
         if cfg.task.is_specified == "specified":
             # Specified GT theta exists, load
@@ -79,6 +80,8 @@ def run(cfg: DictConfig) -> None:
         
     else:
         raise NotImplementedError
+    
+    print("----------")
 
 if __name__ == "__main__":
     run()

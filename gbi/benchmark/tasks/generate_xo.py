@@ -6,26 +6,11 @@ import torch
 from pathlib import Path
 
 
-# Make this script generate x for all tasks.
-
-# def generate_xo():
-#     dir_path = os.path.dirname(os.path.realpath(__file__))
-#     _ = torch.manual_seed(0)
-#     task = UniformNoise1D()
-#     theta_gt = task.prior.sample((10,))
-#     simulated_x = task.simulate(theta_gt)
-#     with open(f"{dir_path}/xo.pkl", "wb") as handle:
-#         pickle.dump(simulated_x, handle)
-#     with open(f"{dir_path}/gt.pkl", "wb") as handle:
-#         pickle.dump(theta_gt, handle)
-
-
 def generate_x_specified(task, n_observations: int = 10):
     """Simulate x from simulator."""
     theta = task.prior.sample((n_observations,))
     x = task.simulate(theta)
     return theta, x
-
 
 def generate_x_misspecified(
     task, n_observations: int = 10, diffusion_scale=0.5, max_steps=10000
@@ -35,11 +20,11 @@ def generate_x_misspecified(
     x = task.simulate(theta)
     counter = 0
     x_min, x_max = x.min(0)[0], x.max(0)[0]
-    x_miss = x[torch.randint(high=x.shape[0], size=(10,))]
+    x_miss = x[torch.randint(high=x.shape[0], size=(n_observations,))]
     mask = torch.zeros((x_miss.shape[0],))
     while (not (mask > 0).all()) and counter < max_steps:
         x_miss += (
-            ((torch.randn((10, x.shape[1])) > 0).to(float) - 0.5)
+            ((torch.randn((n_observations, x.shape[1])) > 0).to(float) - 0.5)
             * 2
             * x.std(0)
             * (1.0 - mask.unsqueeze(1))
@@ -61,7 +46,6 @@ def generate_xo(task_name="uniform_1d", n_observations=10):
     """Generate observations, for training and testing."""
     dir_path = os.path.dirname(os.path.realpath(__file__)) + "/" + task_name + "/xos/"
     Path(dir_path).mkdir(parents=True, exist_ok=True)
-
     print(dir_path)
 
     if task_name == "uniform_1d":
@@ -99,6 +83,11 @@ def generate_xo(task_name="uniform_1d", n_observations=10):
         xo_misspecified_known = generate_x_misspecified(task, n_observations)
         xo_misspecified_unknown = generate_x_misspecified(task, n_observations)
 
+    # print(xo_specified_known[0])
+    # print(xo_specified_unknown[0])
+    # print(xo_misspecified_known[0])
+    # print(xo_misspecified_unknown[0])
+
     # Save theta_gt and xos
     pickle_dump(f"{dir_path}/theta_gt_known.pkl", theta_gt_known)
     pickle_dump(f"{dir_path}/xo_specified_known.pkl", xo_specified_known)
@@ -114,28 +103,6 @@ def generate_xo(task_name="uniform_1d", n_observations=10):
 def pickle_dump(full_path, data_dump):
     with open(full_path, "wb") as handle:
         pickle.dump(data_dump, handle)
-
-
-# def return_xo(index: Optional[int] = None):
-#     dir_path = os.path.dirname(os.path.realpath(__file__))
-
-#     with open(f"{dir_path}/xo.pkl", "rb") as handle:
-#         simulated_x = pickle.load(handle)
-#     if index is not None:
-#         return simulated_x[index].unsqueeze(0)
-#     else:
-#         return simulated_x
-
-
-# def return_gt(index: Optional[int] = None):
-#     dir_path = os.path.dirname(os.path.realpath(__file__))
-
-#     with open(f"{dir_path}/gt.pkl", "rb") as handle:
-#         simulated_x = pickle.load(handle)
-#     if index is not None:
-#         return simulated_x[index].unsqueeze(0)
-#     else:
-#         return simulated_x
 
 
 if __name__ == "__main__":
