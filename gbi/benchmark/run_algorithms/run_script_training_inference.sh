@@ -6,7 +6,7 @@
 # python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=linear_gaussian algorithm=NPE algorithm.sigmoid_theta=False
 # python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=linear_gaussian algorithm=NLE,GBI,eGBI,ABC
 
-python run_training.py -m task.name=two_moons algorithm=GBI 
+python run_training.py -m task.name=two_moons task.num_simulations=10000 algorithm=GBI 
 
 # ## do inference
 INF_DATETIME='2023_04_21__22_38_19'

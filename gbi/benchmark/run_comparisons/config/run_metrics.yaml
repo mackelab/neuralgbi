@@ -4,10 +4,10 @@ defaults:
 # algos: ['GBI','eGBI','NPE','NLE','ABC']
 
 task:
-  name: "uniform_1d"  
+  name: uniform_1d
   xo_index: 0  
-  is_specified: "specified"
-  is_known: "known"
+  is_specified: specified
+  is_known: known
   
 algorithm: GT
 compute_c2st: True

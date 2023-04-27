@@ -7,7 +7,6 @@ from omegaconf import DictConfig
 from hydra.utils import get_original_cwd
 from sbi.inference import MCMCPosterior
 from sbi.utils import mcmc_transform
-from gbi.GBI import GBInferenceEmulator
 import gbi.utils.utils as gbi_utils
 from run_training import get_task_and_distance_func
 import time
@@ -37,12 +36,10 @@ def sample_GBI(inference, x_o, beta, task, n_samples=10_000):
 
 def sample_eGBI(
     inference,
-    distance_function,
     x_o,
     beta,
     task,
-    n_samples=10_000,
-    n_emulator_samples=10,
+    n_samples=10_000,    
 ):
     potential_fn = inference.get_potential(x_o, beta)
     theta_transform = mcmc_transform(task.prior)
