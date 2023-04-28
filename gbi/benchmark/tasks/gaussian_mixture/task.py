@@ -48,9 +48,22 @@ class GaussianMixture:
 
     def simulate_misspecified(self, theta: Tensor) -> Tensor:
         """Simulator."""
-        samples = 0.5 * torch.randn((self.num_trials, *theta.shape)) + theta
-        samples = torch.permute(samples, (1, 0, 2))
-        return samples
+        # For misspecified x, negate the mean of the second Gaussian.
+        samples1 = torch.randn((self.num_trials, *theta.shape)) + theta
+        samples2 = 0.1 * torch.randn((self.num_trials, *theta.shape)) - theta
+        all_samples = torch.zeros(*samples1.shape)
+
+        bern = torch.bernoulli(0.5 * ones((self.num_trials, theta.shape[0]))).bool()
+
+        all_samples[bern] = samples1[bern]
+        all_samples[~bern] = samples2[~bern]
+        all_samples = torch.permute(all_samples, (1, 0, 2))
+        return all_samples
+        # samples = 0.5 * torch.randn((self.num_trials, *theta.shape)) + theta
+        # samples = torch.permute(samples, (1, 0, 2))
+        # return samples
+
+        
 
     def build_marginal_dist(self, predicted_mean):
         class MixtureDist(Distribution):
