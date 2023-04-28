@@ -11,10 +11,10 @@ python ../tasks/generate_xo.py 'gaussian_mixture' 10
 # python run_linear_gaussian.py --multirun hydra/launcher=my_submitit_slurm task.beta=1,10,100 task.name=linear_gaussian
 # python run_gaussian_mixture.py --multirun hydra/launcher=my_submitit_slurm task.beta=2,10,50 task.name=gaussian_mixture
 
-# python run_generate_gt.py task.name=uniform_1d task.beta=4,20,100
-# python run_generate_gt.py task.name=two_moons task.beta=10,100,1000
-# python run_generate_gt.py task.name=linear_gaussian task.beta=1,10,100
-python run_generate_gt.py task.name=gaussian_mixture task.beta=10,50,100
+# python run_generate_gt.py -m task.name=uniform_1d task.beta=4,20,100
+# python run_generate_gt.py -m task.name=two_moons task.beta=10,100,1000
+# python run_generate_gt.py -m task.name=linear_gaussian task.beta=1,10,100
+python run_generate_gt.py -m task.name=gaussian_mixture task.beta=10,50,100
 
 # python run_two_moons.py --multirun hydra/launcher=my_submitit_slurm task.xo_index=1,6 task.is_specified='misspecified' task.is_known='known','unknown' task.beta=1000 task.name=two_moons
 
