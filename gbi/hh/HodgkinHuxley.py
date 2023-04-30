@@ -1,6 +1,5 @@
 import numpy as np
 
-from delfi.simulator.BaseSimulator import BaseSimulator
 
 def param_transform(prior_log, x):
     if prior_log:
@@ -8,14 +7,16 @@ def param_transform(prior_log, x):
     else:
         return x
 
+
 def param_invtransform(prior_log, x):
     if prior_log:
         return np.exp(x)
     else:
         return x
 
-class HodgkinHuxley(BaseSimulator):
-    def __init__(self, I, dt, V0, cython=False, prior_log=False, reduced_model=False, seed=None):
+
+class HodgkinHuxley:
+    def __init__(self, I, dt, V0, cython=False, prior_log=False, reduced_model=False):
         """Hodgkin-Huxley simulator
         Parameters
         ----------
@@ -37,23 +38,22 @@ class HodgkinHuxley(BaseSimulator):
         else:
             dim_param = 8
 
-        super().__init__(dim_param=dim_param, seed=seed)
         self.I = I
         self.cython = cython
         self.dt = dt
-        self.t = np.arange(0, len(self.I), 1)*self.dt
+        self.t = np.arange(0, len(self.I), 1) * self.dt
         self.prior_log = prior_log
 
         if cython:
-            import model.HodgkinHuxleyBioPhysCython as bm
+            import gbi.hh.HodgkinHuxleyBioPhysCython as bm
         else:
-            import model.HodgkinHuxleyBioPhys as bm
+            import gbi.hh.HodgkinHuxleyBioPhys as bm
         self.bm = bm
 
         # parameters that globally govern the simulations
         self.init = [V0]  # =V0
 
-    def gen_single(self, params):
+    def gen_single(self, params, seed):
         """Forward model for simulator for single parameter set
         Parameters
         ----------
@@ -65,16 +65,16 @@ class HodgkinHuxley(BaseSimulator):
             The dictionary must contain a key data that contains the results of
             the forward run. Additional entries can be present.
         """
-        params = param_invtransform(self.prior_log,np.asarray(params))
+        params = param_invtransform(self.prior_log, np.asarray(params))
 
-        assert params.ndim == 1, 'params.ndim must be 1'
+        assert params.ndim == 1, "params.ndim must be 1"
 
-        hh_seed = self.gen_newseed()
-
-        hh = self.bm.HH(self.init, params.reshape(1, -1), seed=hh_seed)
+        hh = self.bm.HH(self.init, params.reshape(1, -1), seed=seed)
         states = hh.sim_time(self.dt, self.t, self.I)
 
-        return {'data': states.reshape(-1),
-                'time': self.t,
-                'dt': self.dt,
-                'I': self.I.reshape(-1)}
+        return {
+            "data": states.reshape(-1),
+            "time": self.t,
+            "dt": self.dt,
+            "I": self.I.reshape(-1),
+        }

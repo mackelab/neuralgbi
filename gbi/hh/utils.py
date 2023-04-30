@@ -93,7 +93,6 @@ def syn_obs_stats(
     t_off,
     data=None,
     V0=-70,
-    summary_stats=1,
     n_xcorr=5,
     n_mom=5,
     n_summary=10,
@@ -254,7 +253,7 @@ def prior(
     if prior_uniform:
         prior_min = range_lower
         prior_max = range_upper
-        return BoxUniform(lower=prior_min, upper=prior_max)
+        return BoxUniform(prior_min, prior_max)
     else:
         prior_mn = param_transform(prior_log, true_params)
         prior_cov = np.diag((range_upper - range_lower) ** 2) / 12
