@@ -1,17 +1,15 @@
 import numpy as np
 
-from delfi.summarystats.BaseSummaryStats import BaseSummaryStats
 from scipy import stats as spstats
 
 
-class HodgkinHuxleyStatsMoments(BaseSummaryStats):
+class HodgkinHuxleyStatsMoments:
     """Moment based SummaryStats class for the Hodgkin-Huxley model
     Calculates summary statistics
     """
 
     def __init__(self, t_on, t_off, n_xcorr=5, n_mom=5, n_summary=13, seed=None):
         """See SummaryStats.py for docstring"""
-        super(HodgkinHuxleyStatsMoments, self).__init__(seed=seed)
         self.t_on = t_on
         self.t_off = t_off
         self.n_xcorr = n_xcorr
