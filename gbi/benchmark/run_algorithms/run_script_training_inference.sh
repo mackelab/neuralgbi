@@ -38,11 +38,11 @@ python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eG
 # TASK='gaussian_mixture'
 # BETA1=10
 # BETA2=50
-# BETA3=100
+# BETA3=250
 # python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified=specified,misspecified task.is_known=known,unknown task.beta=1
 # python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=GBI,eGBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified=specified,misspecified task.is_known=known,unknown task.beta=$BETA1,$BETA2,$BETA3
 
-
+python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=2023_05_01__23_32_09 task.name=gaussian_mixture task.beta=1
 # python run_inference.py -m algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified=specified,misspecified task.is_known=known,unknown task.beta=1
 # python run_inference.py -m algorithm=GBI,eGBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.xo_index=0,1,2,3,4,5,6,7,8,9 task.is_specified=specified,misspecified task.is_known=known,unknown task.beta=$BETA1,$BETA2,$BETA3
 

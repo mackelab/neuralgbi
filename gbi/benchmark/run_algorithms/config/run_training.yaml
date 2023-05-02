@@ -6,7 +6,7 @@ seed: 0
 
 task:
   num_simulations: 1000
-  name: "linear_gaussian"
+  name: "uniform_1d"
   
 
 hydra:

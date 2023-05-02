@@ -8,7 +8,7 @@ n_samples: 10000
 
 task:
   name: "uniform_1d"
-  beta: 100
+  beta: 1
   xo_index: 0  
   is_specified: "specified"
   is_known: "known"
