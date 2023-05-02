@@ -10,7 +10,7 @@
 text.usetex          : False
 mathtext.default     : regular
 
-font.family          : serif
+font.family          : sans-serif
 font.serif           : Arial, sans-serif
 font.sans-serif      : Arial, sans-serif
 font.cursive         : Arial, sans-serif
