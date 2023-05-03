@@ -48,9 +48,9 @@ class GaussianMixture:
 
     def simulate_misspecified(self, theta: Tensor) -> Tensor:
         """Simulator."""
-        # For misspecified x, negate the mean of the second Gaussian.
+        # For misspecified x, push it out of the prior bounds.
         samples1 = torch.randn((self.num_trials, *theta.shape)) + theta
-        samples2 = 0.1 * torch.randn((self.num_trials, *theta.shape)) - theta
+        samples2 = 0.5 * torch.randn((self.num_trials, *theta.shape)) + torch.sign(theta)*12.5
         all_samples = torch.zeros(*samples1.shape)
 
         bern = torch.bernoulli(0.5 * ones((self.num_trials, theta.shape[0]))).bool()
@@ -58,6 +58,7 @@ class GaussianMixture:
         all_samples[bern] = samples1[bern]
         all_samples[~bern] = samples2[~bern]
         all_samples = torch.permute(all_samples, (1, 0, 2))
+        assert ((all_samples[:,:,0]>self.limits[0,0]) & (all_samples[:,:,0]<self.limits[0,1]) & (all_samples[:,:,1]>self.limits[1,0]) & (all_samples[:,:,1]<self.limits[1,1])).all()
         return all_samples
         # samples = 0.5 * torch.randn((self.num_trials, *theta.shape)) + theta
         # samples = torch.permute(samples, (1, 0, 2))
