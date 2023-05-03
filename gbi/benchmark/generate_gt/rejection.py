@@ -51,7 +51,7 @@ def run_rejection(task, config, proposal: Union[str, Any]):
         num_samples_to_find_max=config.num_samples_to_find_max,
         num_iter_to_find_max=config.num_iter_to_find_max,
     )
-    samples = posterior.sample((10_000,))
+    samples = posterior.sample((config.num_rej_samples,))
 
     with open("rejection_samples.pkl", "wb") as handle:
         pickle.dump(samples, handle)

@@ -16,6 +16,7 @@ flow:
 rejection:
   num_samples_to_find_max: 100
   num_iter_to_find_max: 100
+  num_rej_samples: 5000
 
 hydra:
   run:
