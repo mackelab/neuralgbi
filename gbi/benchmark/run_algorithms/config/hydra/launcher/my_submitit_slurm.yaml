@@ -3,5 +3,5 @@ defaults:
 
 timeout_min: 900
 mem_gb: 32
-cpus_per_task: 8
+cpus_per_task: 2
 partition: cpu-long

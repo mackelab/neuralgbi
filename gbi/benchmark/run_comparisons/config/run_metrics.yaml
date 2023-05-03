@@ -1,8 +1,6 @@
 defaults:
   - _self_  
 
-# algos: ['GBI','eGBI','NPE','NLE','ABC']
-
 task:
   name: uniform_1d
   xo_index: 0  

@@ -9,7 +9,7 @@
 # python run_generate_gt.py --multirun hydra/launcher=my_submitit_slurm task.beta=4,20,100 task.name=uniform_1d
 # python run_generate_gt.py --multirun hydra/launcher=my_submitit_slurm task.beta=10,100,1000 task.name=two_moons
 # python run_generate_gt.py --multirun hydra/launcher=my_submitit_slurm task.beta=1,10,100 task.name=linear_gaussian
-# python run_generate_gt.py --multirun hydra/launcher=my_submitit_slurm task.beta=10,50,250 task.name=gaussian_mixture
+python run_generate_gt.py --multirun hydra/launcher=my_submitit_slurm task.beta=10,50,250 task.name=gaussian_mixture
 
 # python run_generate_gt.py -m task.name=uniform_1d task.beta=4,20,100
 # python run_generate_gt.py -m task.name=two_moons task.beta=10,100,1000
