@@ -30,6 +30,13 @@ obs_stats = utils.syn_obs_stats(
     n_summary=n_summary,
 )
 
+with open(f"data/gt.pkl", "wb") as handle:
+    pickle.dump(obs, handle)
+
+with open(f"data/xo.pkl", "wb") as handle:
+    pickle.dump(obs_stats, handle)
+
+
 p = utils.prior(
     true_params=true_params,
     prior_uniform=True,
@@ -46,10 +53,11 @@ stats = HodgkinHuxleyStatsMoments(
     t_on=t_on, t_off=t_off, n_xcorr=n_xcorr, n_mom=n_mom, n_summary=n_summary
 )
 
-n_runs = 10
+n_runs = 100
+print("Starting sims")
 
 for run_ind in range(n_runs):
-    n_sim = 100_000
+    n_sim = 10_000
     start_seed = n_sim * run_ind + 1
     end_seed = n_sim * (run_ind + 1) + 1
     seeds = np.arange(start_seed, end_seed, 1)
@@ -61,8 +69,8 @@ for run_ind in range(n_runs):
     ss = stats.calc(r)
     print("time", time.time() - start_time)
 
-    with open(f"theta_{run_ind}.pkl", "wb") as handle:
+    with open(f"data/theta_{run_ind}.pkl", "wb") as handle:
         pickle.dump(thetas, handle)
 
-    with open(f"summstats_{run_ind}.pkl", "wb") as handle:
+    with open(f"data/summstats_{run_ind}.pkl", "wb") as handle:
         pickle.dump(ss, handle)
