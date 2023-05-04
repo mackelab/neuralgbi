@@ -13,7 +13,7 @@ from sbi.inference.potentials.base_potential import BasePotential
 from sbi.neural_nets.embedding_nets import PermutationInvariantEmbedding, FCEmbedding
 from time import time
 from pyknos.nflows.nn import nets
-from sbi.utils.sbiutils import standardizing_net, DeStandardize
+from sbi.utils.sbiutils import standardizing_net, DeStandardize, MultiplyByMean
 
 
 class GBInference:
@@ -449,7 +449,7 @@ class DistanceEstimator(nn.Module):
         if z_score_dists:
             mean_distance = torch.mean(dists)
             std_distance = torch.std(dists)
-            self.z_score_dist_net = DeStandardize(mean_distance, std_distance)
+            self.z_score_dist_net = MultiplyByMean(mean_distance, std_distance)
         else:
             self.z_score_x_net = nn.Identity()
 
