@@ -172,6 +172,19 @@ class Standardize(nn.Module):
 
     def forward(self, tensor):
         return (tensor - self._mean) / self._std
+    
+
+class DeStandardize(nn.Module):
+    def __init__(self, mean: Union[Tensor, float], std: Union[Tensor, float]):
+        super(DeStandardize, self).__init__()
+        mean, std = map(torch.as_tensor, (mean, std))
+        self.mean = mean
+        self.std = std
+        self.register_buffer("_mean", mean)
+        self.register_buffer("_std", std)
+
+    def forward(self, tensor):
+        return tensor * self._std + self._mean
 
 
 def standardizing_net(
