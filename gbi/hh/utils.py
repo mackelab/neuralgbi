@@ -81,8 +81,8 @@ def syn_current(
 
 def syn_obs_data(I, dt, params, V0=-70, seed=None, cython=False):
     """Data for x_o"""
-    m = hh.HodgkinHuxley(I=I, dt=dt, V0=V0, seed=seed, cython=cython)
-    return m.gen_single(params)
+    m = hh.HodgkinHuxley(I=I, dt=dt, V0=V0, cython=cython)
+    return m.gen_single(params, seed=seed)
 
 
 def syn_obs_stats(
@@ -102,8 +102,8 @@ def syn_obs_stats(
     """Summary stats for x_o"""
 
     if data is None:
-        m = hh.HodgkinHuxley(I=I, dt=dt, V0=V0, seed=seed, cython=cython)
-        data = m.gen_single(params)
+        m = hh.HodgkinHuxley(I=I, dt=dt, V0=V0, cython=cython)
+        data = m.gen_single(params, seed=seed)
 
     s = HodgkinHuxleyStatsMoments(
         t_on, t_off, n_xcorr=n_xcorr, n_mom=n_mom, n_summary=n_summary
