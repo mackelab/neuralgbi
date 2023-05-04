@@ -451,7 +451,7 @@ class DistanceEstimator(nn.Module):
             std_distance = torch.std(dists)
             self.z_score_dist_net = MultiplyByMean(mean_distance, std_distance)
         else:
-            self.z_score_x_net = nn.Identity()
+            self.z_score_dist_net = nn.Identity()
 
         output_dim = 1
         if net_type == "MLP":
