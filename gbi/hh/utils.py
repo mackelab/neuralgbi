@@ -1,3 +1,4 @@
+import io
 from sbi.utils import BoxUniform
 from torch.distributions import MultivariateNormal
 import inspect
@@ -125,8 +126,11 @@ def allen_obs_data(
     t_offset = 815.0
     duration = 1450.0
     dir_cache = os.path.dirname(inspect.getfile(hh.HodgkinHuxley))
-    real_data_path = dir_cache + "/ephys_cell_{}_sweep_number_{}.pkl".format(
-        ephys_cell, sweep_number
+    real_data_path = (
+        dir_cache
+        + "/support_files/ephys_cell_{}_sweep_number_{}.pkl".format(
+            ephys_cell, sweep_number
+        )
     )
     if not os.path.isfile(real_data_path):
         from allensdk.core.cell_types_cache import CellTypesCache
@@ -166,7 +170,8 @@ def allen_obs_data(
             - t_offset
         )
 
-        io.save((real_data_obs, I_real_data, dt, t_on, t_off), real_data_path)
+        with open(real_data_path, "wb") as handle:
+            pickle.dump((real_data_obs, I_real_data, dt, t_on, t_off), handle)
     else:
 
         def pickle_load(file):
@@ -198,7 +203,6 @@ def allen_obs_stats(
     data=None,
     ephys_cell=464212183,
     sweep_number=33,
-    summary_stats=1,
     n_xcorr=5,
     n_mom=5,
     n_summary=13,
@@ -218,12 +222,9 @@ def allen_obs_stats(
     t_on = data["t_on"]
     t_off = data["t_off"]
 
-    if summary_stats == 0:
-        s = Identity()
-    elif summary_stats == 1:
-        s = HodgkinHuxleyStatsMoments(
-            t_on, t_off, n_xcorr=n_xcorr, n_mom=n_mom, n_summary=n_summary
-        )
+    s = HodgkinHuxleyStatsMoments(
+        t_on, t_off, n_xcorr=n_xcorr, n_mom=n_mom, n_summary=n_summary
+    )
     return s.calc([data])
 
 
