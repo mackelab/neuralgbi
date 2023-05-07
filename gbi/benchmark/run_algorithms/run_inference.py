@@ -144,13 +144,11 @@ def run_inference(cfg: DictConfig) -> None:
 
     elif cfg.algorithm.name == "eGBI":
         posterior_samples = sample_eGBI(
-            inference,
-            distance_function,
+            inference,            
             x_o,
             cfg.task.beta,
             task,
-            n_samples,
-            cfg.algorithm.n_emulator_samples,
+            n_samples,            
         )
 
     log.info(f"Inference time taken: {time.time() - time_start}")

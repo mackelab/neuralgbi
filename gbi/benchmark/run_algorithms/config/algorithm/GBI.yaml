@@ -16,4 +16,4 @@ do_precompute_distances: False
 
 
 n_train_per_theta: 2
-n_val_per_theta: 10
+n_val_per_theta: 5

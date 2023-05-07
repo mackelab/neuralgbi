@@ -1,7 +1,7 @@
 defaults:
   - submitit_slurm
 
-timeout_min: 1200
+timeout_min: 1440 # 24 hours
 mem_gb: 32
-cpus_per_task: 2
+cpus_per_task: 8 # 2 is fine for most problems
 partition: cpu-long
