@@ -1,0 +1,4 @@
+density_estimator: 'nsf'
+sigmoid_theta: True
+nsims: 10_000
+training_batch_size: 500

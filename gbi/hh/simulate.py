@@ -31,7 +31,7 @@ obs_stats = utils.syn_obs_stats(
 )
 
 with open(f"data/gt.pkl", "wb") as handle:
-    pickle.dump(obs, handle)
+    pickle.dump(true_params, handle)
 
 with open(f"data/xo.pkl", "wb") as handle:
     pickle.dump(obs_stats, handle)

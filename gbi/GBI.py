@@ -13,6 +13,7 @@ from sbi.inference.potentials.base_potential import BasePotential
 from sbi.neural_nets.embedding_nets import PermutationInvariantEmbedding, FCEmbedding
 from time import time
 from pyknos.nflows.nn import nets
+from sbi.utils.sbiutils import standardizing_net, DeStandardize, MultiplyByMean
 
 
 class GBInference:
@@ -27,6 +28,7 @@ class GBInference:
         self.distance_func = distance_func
         self.do_precompute_distances = do_precompute_distances
         self.n_lowest = n_lowest
+        self.zscore_distance_precomputed = []
 
     def append_simulations(self, theta: Tensor, x: Tensor, x_target: Tensor):
         """Append simulation data: theta, x, and target x."""
@@ -37,6 +39,8 @@ class GBInference:
             # Pre compute the distance function between all x and x_targets.
             self._precompute_distance()
             # self._compute_index_pairs()
+
+        self._precompute_subset_of_dists(num_x_and_xt=1_000)
         return self
 
     def initialize_distance_estimator(
@@ -49,8 +53,9 @@ class GBInference:
     ):
         """Initialize neural network for distance regression."""
         self.distance_net = DistanceEstimator(
-            self.theta.shape[1],
-            self.x.shape[1],
+            self.theta,
+            self.x,
+            self.zscore_distance_precomputed.flatten(),
             num_layers,
             num_hidden,
             net_type,
@@ -240,6 +245,19 @@ class GBInference:
         self.distance_precomputed = torch.hstack(self.distance_precomputed)
         print(f"finished in {time()-t_start} seconds.")
 
+    def _precompute_subset_of_dists(self, num_x_and_xt):
+        """Pre-compute the distances of some x and x_target pairs for z-scoring."""
+        self.zscore_distance_precomputed = []
+        random_inds_x = torch.randint(0, len(self.x), (num_x_and_xt,))
+        random_inds_xtarget = torch.randint(0, len(self.x_target), (num_x_and_xt,))
+        for x_t in self.x_target[random_inds_xtarget]:
+            self.zscore_distance_precomputed.append(
+                self.compute_distance(self.x[random_inds_x], x_t).unsqueeze(1)
+            )
+        self.zscore_distance_precomputed = torch.hstack(
+            self.zscore_distance_precomputed
+        )
+
     def compute_distance(self, x: Tensor, x_target: Tensor):
         """Compute distance between x and x_target."""
         # x_target should have leading dim of 1 or same as x.
@@ -380,8 +398,9 @@ class GBInferenceEmulator:
 class DistanceEstimator(nn.Module):
     def __init__(
         self,
-        theta_dim,
-        x_dim,
+        theta,
+        x,
+        dists,
         num_layers,
         hidden_features,
         net_type,
@@ -392,9 +411,16 @@ class DistanceEstimator(nn.Module):
         activate_output=False,
         trial_net_input_dim=None,
         trial_net_output_dim=None,
+        z_score_theta: bool = True,
+        z_score_x: bool = True,
+        z_score_dists: bool = True,
     ):
         ## TO DO: probably should put all those kwargs in kwargs
         super().__init__()
+
+        theta_dim = theta.shape[1]
+        x_dim = x.shape[1]
+
         if trial_net_input_dim is not None and trial_net_output_dim is not None:
             output_dim_e_net = 20
             trial_net = FCEmbedding(
@@ -409,6 +435,23 @@ class DistanceEstimator(nn.Module):
         else:
             self.embedding_net_x = nn.Identity()
             input_dim = theta_dim + x_dim
+
+        if z_score_theta:
+            self.z_score_theta_net = standardizing_net(theta, False)
+        else:
+            self.z_score_theta_net = nn.Identity()
+
+        if z_score_x:
+            self.z_score_x_net = standardizing_net(x, False)
+        else:
+            self.z_score_x_net = nn.Identity()
+
+        if z_score_dists:
+            mean_distance = torch.mean(dists)
+            std_distance = torch.std(dists)
+            self.z_score_dist_net = MultiplyByMean(mean_distance, std_distance)
+        else:
+            self.z_score_dist_net = nn.Identity()
 
         output_dim = 1
         if net_type == "MLP":
@@ -449,14 +492,18 @@ class DistanceEstimator(nn.Module):
         """
         Predicts distance between theta and x.
         """
+        theta = self.z_score_theta_net(theta)
+        x = self.z_score_x_net(x)
+
         if not hasattr(self, "embedding_net_x"):
             # If we don't have an embedding net, just pass through.
             self.embedding_net_x = nn.Identity()
 
         x_embedded = self.embedding_net_x(x)
-        return self.positive_constraint_fn(
+        rectified_distance = self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))
         )
+        return self.z_score_dist_net(rectified_distance)
 
 
 class GBIPotential(BasePotential):
