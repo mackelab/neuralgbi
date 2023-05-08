@@ -2,3 +2,10 @@ density_estimator: 'nsf'
 sigmoid_theta: True
 nsims: 10_000
 training_batch_size: 500
+
+hydra:
+  run:
+    dir: ../../results/hh/npe/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+  sweep:
+    dir: ../../results/hh/npe/${now:%Y_%m_%d}__${now:%H_%M_%S}_m/
+    subdir: ${hydra.job.num}_nsims_${nsims}

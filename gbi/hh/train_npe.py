@@ -11,12 +11,13 @@ import logging
 log = logging.getLogger("hh_npe")
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="gbi")
+@hydra.main(version_base="1.1", config_path="config", config_name="npe")
 def train_npe(cfg: DictConfig) -> None:
-    with open("data/theta.pkl", "rb") as handle:
+    path = get_original_cwd()
+    with open(f"{path}/data/theta.pkl", "rb") as handle:
         theta = pickle.load(handle)
 
-    with open("data/summstats.pkl", "rb") as handle:
+    with open(f"{path}/data/summstats.pkl", "rb") as handle:
         x = pickle.load(handle)
 
     theta = theta[: cfg.nsims]

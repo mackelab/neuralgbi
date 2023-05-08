@@ -4,6 +4,7 @@ from torch import Tensor
 
 from gbi.GBI import GBInference
 import gbi.hh.utils as utils
+import numpy as np
 
 from hydra.utils import get_original_cwd
 import hydra
@@ -35,6 +36,9 @@ def train_gbi(cfg: DictConfig) -> None:
     with open(f"{path}/data/summstats.pkl", "rb") as handle:
         x = pickle.load(handle)
 
+    obs_stats_ls = utils.load_all_allen()
+    obs_stats_ls = torch.as_tensor(np.concatenate(obs_stats_ls), dtype=torch.float32)
+
     theta = theta[: cfg.nsims]
     x = x[: cfg.nsims]
     data_std = torch.std(x, dim=0)
@@ -46,6 +50,8 @@ def train_gbi(cfg: DictConfig) -> None:
     x_aug = x[torch.randint(x.shape[0], size=(n_augmented_x,))]
     x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * cfg.noise_level
     x_target = torch.cat([x[:n_nonaug_x], x_aug])
+
+    x_target = obs_stats_ls.repeat((100_000, 1))
 
     true_params, labels_params = utils.obs_params(reduced_model=False)
 
