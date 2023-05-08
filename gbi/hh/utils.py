@@ -64,7 +64,7 @@ def load_all_allen():
         )
         obs_stats_ls.append(obs_stats)
 
-    return obs_stats_ls
+    return obs_stats_ls, all_obs
 
 
 def obs_params(reduced_model=False):
