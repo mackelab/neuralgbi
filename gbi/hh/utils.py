@@ -9,6 +9,64 @@ import gbi.hh.HodgkinHuxley as hh
 from gbi.hh.HodgkinHuxleyStatsMoments import HodgkinHuxleyStatsMoments
 
 
+def load_all_allen():
+    seed = 1
+    n_xcorr = 0
+    n_mom = 4
+    n_summary = 7
+
+    # list of all Allen recordings
+    list_cells_AllenDB = [
+        [518290966, 57, 0.0234 / 126],
+        [509881736, 39, 0.0153 / 184],
+        [566517779, 46, 0.0195 / 198],
+        [567399060, 38, 0.0259 / 161],
+        [569469018, 44, 0.033 / 403],
+        [532571720, 42, 0.0139 / 127],
+        [555060623, 34, 0.0294 / 320],
+        [534524026, 29, 0.027 / 209],
+        [532355382, 33, 0.0199 / 230],
+        [526950199, 37, 0.0186 / 218],
+    ]
+
+    n_cells = len(list_cells_AllenDB)
+
+    # define model, summary statistics and generator
+    obs_stats_ls = []
+    m_ls = []
+    s_ls = []
+    g_ls = []
+    all_obs = []
+    for cell_num in range(n_cells):
+        ephys_cell = list_cells_AllenDB[cell_num][0]
+        sweep_number = list_cells_AllenDB[cell_num][1]
+        A_soma = list_cells_AllenDB[cell_num][2]
+        junction_potential = -14
+
+        obs = allen_obs_data(
+            ephys_cell=ephys_cell, sweep_number=sweep_number, A_soma=A_soma
+        )
+        all_obs.append(obs)
+
+        obs["data"] = obs["data"] + junction_potential
+        I = obs["I"]
+        dt = obs["dt"]
+        t_on = obs["t_on"]
+        t_off = obs["t_off"]
+
+        obs_stats = allen_obs_stats(
+            data=obs,
+            ephys_cell=ephys_cell,
+            sweep_number=sweep_number,
+            n_xcorr=n_xcorr,
+            n_mom=n_mom,
+            n_summary=n_summary,
+        )
+        obs_stats_ls.append(obs_stats)
+
+    return obs_stats_ls
+
+
 def obs_params(reduced_model=False):
     """Parameters for x_o
 
