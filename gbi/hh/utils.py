@@ -46,9 +46,9 @@ def load_all_allen():
         obs = allen_obs_data(
             ephys_cell=ephys_cell, sweep_number=sweep_number, A_soma=A_soma
         )
-        all_obs.append(obs)
 
         obs["data"] = obs["data"] + junction_potential
+        all_obs.append(obs)
         I = obs["I"]
         dt = obs["dt"]
         t_on = obs["t_on"]
