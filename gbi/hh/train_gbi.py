@@ -30,13 +30,25 @@ class MaeDistZ:
 def train_gbi(cfg: DictConfig) -> None:
     """Train GBI"""
     path = get_original_cwd()
-    with open(f"{path}/data/theta.pkl", "rb") as handle:
-        theta = pickle.load(handle)
 
-    with open(f"{path}/data/summstats.pkl", "rb") as handle:
-        x = pickle.load(handle)
+    if cfg.type == "allen":
+        with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
+            theta = pickle.load(handle)
 
-    obs_stats_ls = utils.load_all_allen()
+        with open(f"{path}/allen_data/allen_summstats.pkl", "rb") as handle:
+            x = pickle.load(handle)
+    elif cfg.type == "synthetic":
+        with open(f"{path}/data/theta.pkl", "rb") as handle:
+            theta = pickle.load(handle)
+
+        with open(f"{path}/data/summstats.pkl", "rb") as handle:
+            x = pickle.load(handle)
+    else:
+        raise NameError
+
+    log.info(f"num sims loaded: theta {len(theta)}, x {len(x)}")
+
+    obs_stats_ls, _ = utils.load_all_allen()
     obs_stats_ls = torch.as_tensor(np.concatenate(obs_stats_ls), dtype=torch.float32)
 
     theta = theta[: cfg.nsims]
