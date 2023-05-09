@@ -14,11 +14,22 @@ log = logging.getLogger("hh_npe")
 @hydra.main(version_base="1.1", config_path="config", config_name="npe")
 def train_npe(cfg: DictConfig) -> None:
     path = get_original_cwd()
-    with open(f"{path}/data/theta.pkl", "rb") as handle:
-        theta = pickle.load(handle)
+    if cfg.type == "allen":
+        with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
+            theta = pickle.load(handle)
 
-    with open(f"{path}/data/summstats.pkl", "rb") as handle:
-        x = pickle.load(handle)
+        with open(f"{path}/allen_data/allen_summstats.pkl", "rb") as handle:
+            x = pickle.load(handle)
+    elif cfg.type == "synthetic":
+        with open(f"{path}/data/theta.pkl", "rb") as handle:
+            theta = pickle.load(handle)
+
+        with open(f"{path}/data/summstats.pkl", "rb") as handle:
+            x = pickle.load(handle)
+    else:
+        raise NameError
+
+    log.info(f"num sims loaded: theta {len(theta)}, x {len(x)}")
 
     theta = theta[: cfg.nsims]
     x = x[: cfg.nsims]
