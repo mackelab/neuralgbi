@@ -1,5 +1,5 @@
-# ## TRAINING MODELS
-# python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d,two_moons,linear_gaussian,gaussian_mixture algorithm=NPE,NLE,GBI,eGBI,ABC task.num_simulations=1000
+# # ## TRAINING MODELS
+# python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d,two_moons,linear_gaussian,gaussian_mixture algorithm=NPE,NLE,GBI,eGBI,ABC task.num_simulations=10000
 
 # ## do inference
 # TASK='uniform_1d'
@@ -16,11 +16,11 @@
 # python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=10,100,1000
 
 
-TASK='linear_gaussian'
-INF_DATETIME=`ls ../../../results/benchmark/algorithms/$TASK/ -t | head -n1`
-echo $INF_DATETIME
-python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1
-python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1,10,100
+# TASK='linear_gaussian'
+# INF_DATETIME=`ls ../../../results/benchmark/algorithms/$TASK/ -t | head -n1`
+# echo $INF_DATETIME
+# python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1
+# python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1,10,100
 
 
 # TASK='gaussian_mixture'

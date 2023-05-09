@@ -492,14 +492,18 @@ class DistanceEstimator(nn.Module):
         """
         Predicts distance between theta and x.
         """
+        # Check for z-score and embedding nets at run time just in case
+        if not hasattr(self, "embedding_net_x"):
+            self.embedding_net_x = nn.Identity()
+        if not hasattr(self, "z_score_theta_net"):
+            self.z_score_theta_net = nn.Identity()
+        if not hasattr(self, "z_score_x_net"):
+            self.z_score_x_net = nn.Identity()
+        
         theta = self.z_score_theta_net(theta)
         x = self.z_score_x_net(x)
-
-        if not hasattr(self, "embedding_net_x"):
-            # If we don't have an embedding net, just pass through.
-            self.embedding_net_x = nn.Identity()
-
         x_embedded = self.embedding_net_x(x)
+        
         rectified_distance = self.positive_constraint_fn(
             self.net(torch.concat((theta, x_embedded), dim=-1))
         )

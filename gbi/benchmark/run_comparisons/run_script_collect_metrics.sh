@@ -1,5 +1,5 @@
 GT_DATETIME=None
-INF_DATETIME='2023_05_03__18_41_31'
+INF_DATETIME='2023_05_03__18_41_31' #'2023_05_07__20_08_28' # '2023_05_03__18_41_31'
 for TASK in gaussian_mixture #uniform_1d two_moons linear_gaussian gaussian_mixture
 do
     echo $TASK

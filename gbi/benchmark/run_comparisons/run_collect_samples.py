@@ -14,7 +14,7 @@ task_betas = {
     "uniform_1d": ["4", "20", "100"],
     "two_moons": ["10", "100", "1000"],
     "linear_gaussian": ["1", "10", "100"],
-    "gaussian_mixture": ["10", "50", "250"],
+    "gaussian_mixture": ["10", "50", "100", "250"],
 }
 
 

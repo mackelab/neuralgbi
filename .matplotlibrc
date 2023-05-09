@@ -14,13 +14,13 @@ font.family          : sans-serif
 font.serif           : Arial, sans-serif
 font.sans-serif      : Arial, sans-serif
 font.cursive         : Arial, sans-serif
-font.size            : 8
-figure.titlesize     : 8
-legend.fontsize      : 8
-axes.titlesize       : 8
-axes.labelsize       : 8
-xtick.labelsize      : 8
-ytick.labelsize      : 8
+font.size            : 6
+figure.titlesize     : 6
+legend.fontsize      : 6
+axes.titlesize       : 6
+axes.labelsize       : 6
+xtick.labelsize      : 6
+ytick.labelsize      : 6
 
 image.interpolation   : nearest
 image.resample        : False
@@ -31,11 +31,11 @@ axes.spines.bottom   : True
 axes.spines.top      : False
 axes.spines.right    : False
 
-axes.linewidth       : 1.5
-xtick.major.width    : 1.5
-xtick.minor.width    : 1.5
-ytick.major.width    : 1.5
-ytick.minor.width    : 1.5
+axes.linewidth       : 1.
+xtick.major.width    : 1.
+xtick.minor.width    : 1.
+ytick.major.width    : 1.
+ytick.minor.width    : 1.
 
 lines.linewidth      : 1.5
 lines.markersize     : 3
