@@ -499,7 +499,9 @@ class DistanceEstimator(nn.Module):
             self.z_score_theta_net = nn.Identity()
         if not hasattr(self, "z_score_x_net"):
             self.z_score_x_net = nn.Identity()
-        
+        if not hasattr(self, "z_score_dist_net"):
+            self.z_score_dist_net = nn.Identity()
+            
         theta = self.z_score_theta_net(theta)
         x = self.z_score_x_net(x)
         x_embedded = self.embedding_net_x(x)

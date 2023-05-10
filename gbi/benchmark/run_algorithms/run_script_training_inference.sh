@@ -23,8 +23,9 @@
 # python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1,10,100
 
 
-# TASK='gaussian_mixture'
+TASK='gaussian_mixture'
 # INF_DATETIME=`ls ../../../results/benchmark/algorithms/$TASK/ -t | head -n1`
-# echo $INF_DATETIME
-# python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1
-# python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=10,50,250
+INF_DATETIME='2023_05_03__18_41_31'
+echo $INF_DATETIME
+python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=NPE,NLE trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=1
+python run_inference.py --multirun hydra/launcher=my_submitit_slurm algorithm=eGBI,GBI,ABC trained_inference_datetime=$INF_DATETIME task.name=$TASK task.beta=10,25,75
