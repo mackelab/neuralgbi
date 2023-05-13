@@ -30,6 +30,7 @@ class MaeDistZ:
 def train_gbi(cfg: DictConfig) -> None:
     """Train GBI"""
     path = get_original_cwd()
+    _ = torch.manual_seed(42)
 
     if cfg.type == "allen":
         with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
@@ -59,11 +60,28 @@ def train_gbi(cfg: DictConfig) -> None:
     n_nonaug_x = cfg.nsims
     n_augmented_x = cfg.nsims if cfg.n_augmented_x is None else cfg.n_augmented_x
 
-    x_aug = x[torch.randint(x.shape[0], size=(n_augmented_x,))]
-    x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * cfg.noise_level
-    x_target = torch.cat([x[:n_nonaug_x], x_aug])
+    x_target_condition = x[:, 0] > 5.0
+    x_t = x[x_target_condition]
+    print("x_t1", x_t.shape)
 
-    x_target = obs_stats_ls.repeat((100_000, 1))
+    x_target_condition = x_t[:, 0] < 40.0
+    x_t = x_t[x_target_condition]
+    print("x_t2", x_t.shape)
+
+    x_aug = x_t[torch.randint(x_t.shape[0], size=(n_augmented_x,))]
+    x_aug = x_aug + torch.randn(x_aug.shape) * x_t.std(dim=0) * cfg.noise_level
+    x_target = torch.cat([x_t[:n_nonaug_x], x_aug])
+
+    if cfg.deal_with_xo == "do_not_use":
+        x_target = x_target
+    elif cfg.deal_with_xo == "append":
+        x_target = torch.cat(
+            [obs_stats_ls[: cfg.n_obs_for_target].repeat((1000, 1)), x_target]
+        )
+    elif cfg.deal_with_xo == "use":
+        x_target = obs_stats_ls[: cfg.n_obs_for_target].repeat((200_000, 1))
+    else:
+        raise NameError
 
     true_params, labels_params = utils.obs_params(reduced_model=False)
 

@@ -2,6 +2,7 @@ import pickle
 from sbi.inference import SNPE
 import gbi.hh.utils as utils
 from sbi.utils import posterior_nn
+import torch
 
 from hydra.utils import get_original_cwd
 import hydra
@@ -14,6 +15,9 @@ log = logging.getLogger("hh_npe")
 @hydra.main(version_base="1.1", config_path="config", config_name="npe")
 def train_npe(cfg: DictConfig) -> None:
     path = get_original_cwd()
+
+    _ = torch.manual_seed(5555)
+
     if cfg.type == "allen":
         with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
             theta = pickle.load(handle)

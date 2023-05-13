@@ -3,7 +3,7 @@ import torch
 
 
 thetas = []
-for i in range(590):
+for i in range(1000):
     with open(f"allen_data/allen_theta_{i}.pkl", "rb") as handle:
         theta = pickle.load(handle)
         thetas.append(theta)
@@ -11,7 +11,7 @@ thetas = torch.cat(thetas)
 
 
 allsummstats = []
-for i in range(590):
+for i in range(1000):
     with open(f"allen_data/allen_summstats_{i}.pkl", "rb") as handle:
         summstats = pickle.load(handle)
         allsummstats.append(torch.as_tensor(summstats, dtype=torch.float32))
