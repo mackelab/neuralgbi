@@ -33,10 +33,14 @@ def train_gbi(cfg: DictConfig) -> None:
     _ = torch.manual_seed(42)
 
     if cfg.type == "allen":
-        with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
+        with open(
+            f"{path}/../../results/hh/simulations/allen_theta.pkl", "rb"
+        ) as handle:
             theta = pickle.load(handle)
 
-        with open(f"{path}/allen_data/allen_summstats.pkl", "rb") as handle:
+        with open(
+            f"{path}/../../results/hh/simulations/allen_summstats.pkl", "rb"
+        ) as handle:
             x = pickle.load(handle)
     elif cfg.type == "synthetic":
         with open(f"{path}/data/theta.pkl", "rb") as handle:
@@ -62,11 +66,8 @@ def train_gbi(cfg: DictConfig) -> None:
 
     x_target_condition = x[:, 0] > 5.0
     x_t = x[x_target_condition]
-    print("x_t1", x_t.shape)
-
     x_target_condition = x_t[:, 0] < 40.0
     x_t = x_t[x_target_condition]
-    print("x_t2", x_t.shape)
 
     x_aug = x_t[torch.randint(x_t.shape[0], size=(n_augmented_x,))]
     x_aug = x_aug + torch.randn(x_aug.shape) * x_t.std(dim=0) * cfg.noise_level
