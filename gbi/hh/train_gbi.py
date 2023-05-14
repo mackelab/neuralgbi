@@ -71,6 +71,8 @@ def train_gbi(cfg: DictConfig) -> None:
 
     x_aug = x_t[torch.randint(x_t.shape[0], size=(n_augmented_x,))]
     x_aug = x_aug + torch.randn(x_aug.shape) * x_t.std(dim=0) * cfg.noise_level
+    print("num nonaug: ", x_t[:n_nonaug_x].shape)
+    print("num x_aug: ", x_aug.shape)
     x_target = torch.cat([x_t[:n_nonaug_x], x_aug])
 
     if cfg.deal_with_xo == "do_not_use":
