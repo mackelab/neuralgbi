@@ -23,7 +23,7 @@ n_obs_for_target: 10
 
 hydra:
   run:
-    dir: ../../results/hh/gbi/${now:%Y_%m_%d}__${now:%H_%M_%S}/
+    dir: ../../results/hh_allen/gbi_inference/
   sweep:
-    dir: ../../results/hh/gbi/${now:%Y_%m_%d}__${now:%H_%M_%S}_m/
+    dir: ../../results/hh_allen/gbi_inference_m/
     subdir: ${hydra.job.num}_nsims_${nsims}

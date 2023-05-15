@@ -1,0 +1,10 @@
+observation: "allen"
+nsims: 100000
+
+
+hydra:
+  run:
+    dir: ../../results/hh_allen/npe_pred/
+  sweep:
+    dir: ../../results/hh_allen/npe_pred_m/
+    subdir: ${hydra.job.num}_${observation}_${nsims}

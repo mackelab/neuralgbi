@@ -8,33 +8,7 @@ import pickle
 import gbi.hh.HodgkinHuxley as hh
 from gbi.hh.HodgkinHuxleyStatsMoments import HodgkinHuxleyStatsMoments
 from torch import zeros, ones, eye, as_tensor
-import torch
 
-from sbi.inference import MCMCPosterior
-from sbi.utils import mcmc_transform
-
-
-def sample_gbi_all_xo(beta, observations, inference, prior):
-    all_samples = []
-    for xo in observations:
-        xo = as_tensor(xo)
-        potential_fn = inference.get_potential(x_o=xo, beta=beta)
-        theta_transform = mcmc_transform(prior)
-
-        posterior = MCMCPosterior(
-            potential_fn,
-            theta_transform=theta_transform,
-            proposal=prior,
-            method="slice_np_vectorized",
-            thin=10,
-            warmup_steps=50,
-            num_chains=100,
-            init_strategy="resample",
-            frac_chains_to_finish=0.9,
-        )
-        posterior_samples = posterior.sample((1_000,), frac_chains_to_finish=0.9)
-        all_samples.append(posterior_samples)
-    return all_samples
 
 
 def load_all_allen():
