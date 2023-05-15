@@ -2,3 +2,11 @@ density_estimator: 'nsf'
 sigmoid_theta: True
 nsims: 10_000
 training_batch_size: 500
+type: 'allen'
+
+hydra:
+  run:
+    dir: ../../results/hh_allen/npe_inference/
+  sweep:
+    dir: ../../results/hh_allen/npe_inference_m/
+    subdir: ${hydra.job.num}_nsims_${nsims}

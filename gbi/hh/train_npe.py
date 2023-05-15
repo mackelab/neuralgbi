@@ -2,6 +2,7 @@ import pickle
 from sbi.inference import SNPE
 import gbi.hh.utils as utils
 from sbi.utils import posterior_nn
+import torch
 
 from hydra.utils import get_original_cwd
 import hydra
@@ -11,13 +12,32 @@ import logging
 log = logging.getLogger("hh_npe")
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="gbi")
+@hydra.main(version_base="1.1", config_path="config", config_name="npe")
 def train_npe(cfg: DictConfig) -> None:
-    with open("data/theta.pkl", "rb") as handle:
-        theta = pickle.load(handle)
+    path = get_original_cwd()
 
-    with open("data/summstats.pkl", "rb") as handle:
-        x = pickle.load(handle)
+    _ = torch.manual_seed(5555)
+
+    if cfg.type == "allen":
+        with open(
+            f"{path}/../../results/hh/simulations/allen_theta.pkl", "rb"
+        ) as handle:
+            theta = pickle.load(handle)
+
+        with open(
+            f"{path}/../../results/hh/simulations/allen_summstats.pkl", "rb"
+        ) as handle:
+            x = pickle.load(handle)
+    elif cfg.type == "synthetic":
+        with open(f"{path}/data/theta.pkl", "rb") as handle:
+            theta = pickle.load(handle)
+
+        with open(f"{path}/data/summstats.pkl", "rb") as handle:
+            x = pickle.load(handle)
+    else:
+        raise NameError
+
+    log.info(f"num sims loaded: theta {len(theta)}, x {len(x)}")
 
     theta = theta[: cfg.nsims]
     x = x[: cfg.nsims]
