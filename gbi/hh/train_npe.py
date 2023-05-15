@@ -19,10 +19,14 @@ def train_npe(cfg: DictConfig) -> None:
     _ = torch.manual_seed(5555)
 
     if cfg.type == "allen":
-        with open(f"{path}/allen_data/allen_theta.pkl", "rb") as handle:
+        with open(
+            f"{path}/../../results/hh/simulations/allen_theta.pkl", "rb"
+        ) as handle:
             theta = pickle.load(handle)
 
-        with open(f"{path}/allen_data/allen_summstats.pkl", "rb") as handle:
+        with open(
+            f"{path}/../../results/hh/simulations/allen_summstats.pkl", "rb"
+        ) as handle:
             x = pickle.load(handle)
     elif cfg.type == "synthetic":
         with open(f"{path}/data/theta.pkl", "rb") as handle:
