@@ -1,6 +1,9 @@
 GT_DATETIME=None
-INF_DATETIME='2023_05_03__18_41_31' #'2023_05_07__20_08_28' # '2023_05_03__18_41_31'
-for TASK in gaussian_mixture #uniform_1d two_moons linear_gaussian gaussian_mixture
+# '2023_05_11__23_45_10': 200
+# '2023_05_03__18_41_31': 1000
+# '2023_05_07__20_08_28': 10000
+INF_DATETIME='2023_05_11__23_45_10'
+for TASK in gaussian_mixture # uniform_1d two_moons linear_gaussian gaussian_mixture
 do
     echo $TASK
     python run_collect_samples.py task.name=$TASK gt_datetime=$GT_DATETIME inference_datetime=$INF_DATETIME
