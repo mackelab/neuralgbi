@@ -193,7 +193,7 @@ def run_training(cfg: DictConfig) -> None:
     elif cfg.algorithm.name == "NPE":
         inference, _ = train_NPE(theta, x, task, cfg.algorithm, cfg.task.name)
 
-    elif cfg.algorithm.name == "NLE":
+    elif (cfg.algorithm.name == "NLE") or (cfg.algorithm.name == "NLE_tempered"):
         inference, _ = train_NLE(theta, x, task, cfg.algorithm, cfg.task.name)
 
     elif cfg.algorithm.name == "eGBI":
