@@ -195,3 +195,57 @@ class MixedLikelihoodBasedPotential(LikelihoodBasedPotential):
             ).sum(0)
 
         return log_likelihood_trial_sum + self.prior.log_prob(theta)
+
+
+class TemperedLikelihoodBasedPotential(BasePotential):
+    allow_iid_x = True  # type: ignore
+
+    def __init__(
+        self,
+        likelihood_estimator: nn.Module,
+        prior: Distribution,
+        x_o: Optional[Tensor],
+        beta: float = 1.,
+        device: str = "cpu",
+    ):
+        r"""Returns the potential function for tempered likelihood-based methods.
+
+        Args:
+            likelihood_estimator: The neural network modelling the likelihood.
+            prior: The prior distribution.
+            x_o: The observed data at which to evaluate the likelihood.
+            beta: The inverse temperature.
+            device: The device to which parameters and data are moved before evaluating
+                the `likelihood_nn`.
+
+        Returns:
+            The potential function $p(x_o|\theta)p(\theta)$.
+        """
+
+        super().__init__(prior, x_o, device)
+        self.likelihood_estimator = likelihood_estimator
+        self.beta = beta
+        self.likelihood_estimator.eval()
+
+    def __call__(self, theta: Tensor, track_gradients: bool = True) -> Tensor:
+        r"""Returns the potential $\log(p(x_o|\theta)p(\theta))$.
+
+        Args:
+            theta: The parameter set at which to evaluate the potential function.
+            track_gradients: Whether to track the gradients.
+
+        Returns:
+            The potential $\log(p(x_o|\theta)p(\theta))$.
+        """
+
+        # Calculate likelihood over trials and in one batch.
+        log_likelihood_trial_sum = _log_likelihoods_over_trials(
+            x=self.x_o,
+            theta=theta.to(self.device),
+            net=self.likelihood_estimator,
+            track_gradients=track_gradients,
+        )
+
+        return -self.beta * log_likelihood_trial_sum + self.prior.log_prob(theta)
+    
+

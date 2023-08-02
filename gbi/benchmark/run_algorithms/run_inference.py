@@ -6,6 +6,7 @@ import hydra
 from omegaconf import DictConfig
 from hydra.utils import get_original_cwd
 from sbi.inference import MCMCPosterior
+from sbi.inference.potentials.likelihood_based_potential import TemperedLikelihoodBasedPotential
 from sbi.utils import mcmc_transform
 import gbi.utils.utils as gbi_utils
 from run_training import get_task_and_distance_func
@@ -77,6 +78,23 @@ def sample_NLE(inference, x_o, task, n_samples=10_000):
     assert len(posterior_samples) == n_samples, "number of samples does not match."
     return posterior_samples
 
+def sample_NLE_tempered(inference, x_o, beta, task, n_samples=10_000):
+    potential_fn = TemperedLikelihoodBasedPotential(inference._neural_net, task.prior, x_o, beta)
+    theta_transform = mcmc_transform(task.prior)
+    posterior = MCMCPosterior(
+        potential_fn,
+        theta_transform=theta_transform,
+        proposal=task.prior,
+        method="slice_np_vectorized",
+        thin=10,
+        warmup_steps=50,
+        num_chains=100,
+        init_strategy="resample",
+        frac_chains_to_finish=0.9,
+    )    
+    posterior_samples = posterior.sample((n_samples,))
+    assert len(posterior_samples) == n_samples, "number of samples does not match."
+    return posterior_samples
 
 def sample_ABC(inference, x_o, beta, n_abc_samples):
     inference = inference.set_default_x(x_o)
@@ -133,6 +151,9 @@ def run_inference(cfg: DictConfig) -> None:
 
     elif cfg.algorithm.name == "NLE":
         posterior_samples = sample_NLE(inference, x_o, task, n_samples)
+
+    elif cfg.algorithm.name == "NLE_tempered":
+        posterior_samples = sample_NLE_tempered(inference, x_o, cfg.task.beta, task, n_samples)
 
     elif cfg.algorithm.name == "ABC":
         posterior_samples = sample_ABC(
