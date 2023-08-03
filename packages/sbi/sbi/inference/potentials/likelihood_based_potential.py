@@ -246,6 +246,6 @@ class TemperedLikelihoodBasedPotential(BasePotential):
             track_gradients=track_gradients,
         )
 
-        return -self.beta * log_likelihood_trial_sum + self.prior.log_prob(theta)
+        return self.beta * log_likelihood_trial_sum + self.prior.log_prob(theta)
     
 
