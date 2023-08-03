@@ -78,8 +78,12 @@ def collect_metrics(cfg: DictConfig) -> None:
     print(
         f"Computing metrics on inference results from {cfg.inference_datetime}, collected on {cfg.collection_datetime}"
     )
-
-    gbi_inference = gbi_utils.pickle_load(f"../../..//GBI/inference.pickle")
+    if (cfg.compute_GBI_dist_prediction) and (path.exists("../../../GBI/inference.pickle")):
+        # Should change this to be able to use a specific GBI inference object path
+        # Now just taking the same run as the inference_datetime
+        gbi_inference = gbi_utils.pickle_load("../../../GBI/inference.pickle")
+    else:
+        gbi_inference = None
 
     # Find the corresponding index in the posterior samples collected
     xo_info = (cfg.task.xo_index, cfg.task.is_specified, cfg.task.is_known)

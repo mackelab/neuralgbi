@@ -45,10 +45,7 @@ def compute_predictives(theta_samples, task, distance_fn_empirical, inference_ob
     )
 
     if inference_obj:
-        with torch.no_grad():
-            # predictives["dist_estimate"] = inference_obj.distance_net(
-            #     theta_samples, task.x_o.repeat((theta_samples.shape[0], 1))
-            # ).squeeze(1)
+        with torch.no_grad():            
             predictives["dist_estimate"] = inference_obj.predict_distance(
                 theta_samples, task.x_o[None, :]
             )
@@ -61,24 +58,35 @@ def compute_moments(predictives):
     summaries = {}
     for k, v in predictives.items():
         if "dist" in k:
-            summaries[f"{k}_mean"], summaries[f"{k}_std"] = (
-                v.mean(0).numpy(),
-                v.std(0).numpy(),
-            )
-    # Compute correlation and error between true and estimated distances
-    summaries["r_dist_gt_estimate"] = torch.corrcoef(
-        torch.vstack((predictives["dist_gt"], predictives["dist_estimate"]))
-    )[0, 1].numpy()
-    summaries["mse_dist_gt_estimate"] = (
-        ((predictives["dist_gt"] - predictives["dist_estimate"]) ** 2).mean().numpy()
-    )
-
-    summaries["r_dist_samples_estimate"] = torch.corrcoef(
-        torch.vstack((predictives["dist_samples"], predictives["dist_estimate"]))
-    )[0, 1].numpy()
-    summaries["mse_dist_samples_estimate"] = (
-        ((predictives["dist_samples"] - predictives["dist_estimate"]) ** 2)
-        .mean()
-        .numpy()
-    )
+            if v is not None:
+                summaries[f"{k}_mean"], summaries[f"{k}_std"] = (
+                    v.mean().numpy(),
+                    v.std().numpy(),
+                )
+            else:
+                summaries[f"{k}_mean"], summaries[f"{k}_std"] = None, None            
+    
+    if predictives["dist_estimate"] is not None:
+        # Compute correlation and error between true and estimated distances
+        summaries["r_dist_gt_estimate"] = torch.corrcoef(
+            torch.vstack((predictives["dist_gt"], predictives["dist_estimate"]))
+        )[0, 1].numpy()
+        summaries["mse_dist_gt_estimate"] = (
+            ((predictives["dist_gt"] - predictives["dist_estimate"]) ** 2).mean().numpy()
+        )
+        
+        # Compute correlation and error between sample and estimated distances
+        summaries["r_dist_samples_estimate"] = torch.corrcoef(
+            torch.vstack((predictives["dist_samples"], predictives["dist_estimate"]))
+        )[0, 1].numpy()
+        summaries["mse_dist_samples_estimate"] = (
+            ((predictives["dist_samples"] - predictives["dist_estimate"]) ** 2)
+            .mean()
+            .numpy()
+        )        
+    else:
+        # No GBI estimated distance, don't compute against true.
+        summaries["r_dist_samples_estimate"] = None
+        summaries["mse_dist_samples_estimate"] = None
+        
     return summaries

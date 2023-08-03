@@ -9,6 +9,7 @@ task:
   
 algorithm: GT
 compute_c2st: True
+compute_GBI_dist_prediction: True
 inference_datetime: ???
 collection_datetime: ???
 
