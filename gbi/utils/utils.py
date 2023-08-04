@@ -86,6 +86,8 @@ def compute_moments(predictives):
         )        
     else:
         # No GBI estimated distance, don't compute against true.
+        summaries["r_dist_gt_estimate"] = None
+        summaries["mse_dist_gt_estimate"] = None
         summaries["r_dist_samples_estimate"] = None
         summaries["mse_dist_samples_estimate"] = None
         
