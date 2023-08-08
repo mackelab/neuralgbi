@@ -1,5 +1,6 @@
 # ## TRAINING MODELS
-python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d,two_moons,linear_gaussian,gaussian_mixture algorithm=GBI algorithm.noise_level=5.0 task.num_simulations=10000
+# python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d,two_moons,linear_gaussian,gaussian_mixture algorithm=GBI algorithm.noise_level=0. task.num_simulations=10000
+python run_training.py --multirun hydra/launcher=my_submitit_slurm task.name=uniform_1d,two_moons,linear_gaussian,gaussian_mixture algorithm=GBI algorithm.n_augmented_x=0 algorithm.train_with_obs=False task.num_simulations=1000
 
 ## do inference
 TASK='uniform_1d'

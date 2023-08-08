@@ -12,6 +12,7 @@ validation_fraction: 0.1
 
 noise_level: 2.0
 n_augmented_x: 100
+train_with_obs: True
 do_precompute_distances: False
 
 

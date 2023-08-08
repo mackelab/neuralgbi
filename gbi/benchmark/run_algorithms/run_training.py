@@ -112,21 +112,25 @@ def train_eGBI(theta, x, task, distance_func, config, task_name):
 
 def train_GBI(theta, x, task, config, task_folder, task_name):
     # Augment data with noise.
-    x_aug = x[torch.randint(x.shape[0], size=(config.n_augmented_x,))]
-    x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * config.noise_level
-    x_target = gbi_utils.concatenate_xs(x, x_aug)
+    if config.n_augmented_x > 0:
+        x_aug = x[torch.randint(x.shape[0], size=(config.n_augmented_x,))]
+        x_aug = x_aug + torch.randn(x_aug.shape) * x.std(dim=0) * config.noise_level
+        x_target = gbi_utils.concatenate_xs(x, x_aug)
+    else:
+        x_target = x
 
-    # Append observations.
-    xo_specified_known = gbi_utils.pickle_load(
-        task_folder + "/xos/xo_specified_known.pkl"
-    )
-    xo_misspecified_known = gbi_utils.pickle_load(
-        task_folder + "/xos/xo_misspecified_known.pkl"
-    )
-    x_obs = gbi_utils.concatenate_xs(xo_specified_known, xo_misspecified_known)
+    if config.train_with_obs:
+        # Append observations.
+        xo_specified_known = gbi_utils.pickle_load(
+            task_folder + "/xos/xo_specified_known.pkl"
+        )
+        xo_misspecified_known = gbi_utils.pickle_load(
+            task_folder + "/xos/xo_misspecified_known.pkl"
+        )
+        x_obs = gbi_utils.concatenate_xs(xo_specified_known, xo_misspecified_known)
 
-    # Put all together.
-    x_target = gbi_utils.concatenate_xs(x_target, x_obs)
+        # Put all together.
+        x_target = gbi_utils.concatenate_xs(x_target, x_obs)
 
     # Initialize and train.
     if task_name == "gaussian_mixture":
