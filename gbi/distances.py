@@ -44,7 +44,7 @@ def mmd_dist(xs: Tensor, x_o: Tensor) -> Tensor:
     else:
         # If they don't have identical shapes, compute all pairwise between xs and xo
         if len(x_o.shape) > 2:
-            x_o = x_o.squeeze(1) # [num_xs, 1, num_x_dims] -> [num_xs, num_x_dims]
+            x_o = x_o.squeeze(1) # [num_x_o, 1, num_x_dims] -> [num_x_o, num_x_dims]
         assert x_o.shape[0] > 1
         mmds = torch.stack([sample_based_mmd(x[0], x_o) for x in xs])
 
